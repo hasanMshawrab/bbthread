@@ -31,20 +31,23 @@ go test ./internal/... -run TestName  # Run a single test by name
 
 ```
 bitslack/
-├── bitslack.go          # Public API: Config struct, New() constructor, Handler()
+├── bitslack.go          # Public API: Config struct, New() constructor, Client
 ├── adapter.go           # Interface definitions: ThreadStore, ConfigStore, Logger
-├── handler.go           # http.Handler — receives webhooks and drives the core flow
+├── handler.go           # Client.Handler(ctx, eventKey, payload) — core flow orchestration
+├── handler_test.go      # Integration tests: full flow with mocks + httptest stubs
 │
 ├── internal/
 │   ├── bitbucket/       # Bitbucket REST API client (PR resolution from commit hash)
 │   ├── slack/           # Slack API client (chat.postMessage, chat.update)
 │   ├── event/           # Webhook event types, JSON parsing, routing by event key
-│   └── format/          # Slack message formatting (opening message, reply text)
+│   ├── format/          # Slack message formatting (opening message, reply text)
+│   └── testutil/        # Mock adapters: MockThreadStore, MockConfigStore, MockLogger
 │
 ├── examples/
 │   └── server/
-│       ├── main.go          # Reference server wired with concrete adapters
-│       └── docker-compose.yml  # Full stack for local E2E testing
+│       ├── main.go          # Reference server wired with in-memory adapters
+│       ├── docker-compose.yml  # Placeholder for future E2E testing
+│       └── e2e_test.go      # E2E test scaffold (//go:build e2e)
 │
 ├── testdata/
 │   └── webhooks/
@@ -60,6 +63,11 @@ bitslack/
 │   ├── ISSUE_TEMPLATE/  # bug_report.md, feature_request.md
 │   └── pull_request_template.md
 │
+├── .golangci.yml        # golangci-lint v2.8.0 config (75+ linters)
+├── .go-arch-lint.yml    # Architecture dependency rules
+├── Makefile             # Build, test, lint, arch-lint, fmt, tools targets
+├── README.md            # Usage guide and API documentation
+├── LICENSE              # MIT
 ├── .plan/               # Local planning scratch space — gitignored
 ├── .gitignore
 ├── go.mod
@@ -103,14 +111,23 @@ The opening message is a live document — it is edited (via `chat.update`) to s
 
 ### Core Flow
 
-1. Caller's HTTP server receives a Bitbucket webhook and passes the raw event to the library.
-2. The library identifies the PR (see "Build Status Events" below).
-3. Look up the thread `ts` for that PR via `ThreadStore`.
-4. If no `ts` exists (new PR **or** an existing PR that predates the integration):
+1. Caller's HTTP server receives a Bitbucket webhook and calls `client.Handler(ctx, eventKey, payload)`.
+2. The library parses the event and identifies the PR (see "Build Status Events" below).
+3. Look up the Slack channel via `ConfigStore.GetChannel(repo)`.
+4. Look up the thread `ts` for that PR via `ThreadStore`.
+5. If no `ts` exists (new PR **or** an existing PR that predates the integration):
    - Call the Bitbucket API to fetch full PR details (`GET /repositories/{workspace}/{repo}/pullrequests/{id}`)
    - Post a synthetic opening message to Slack → store the returned `ts` via `ThreadStore`
    - If either step fails, log the error and drop the event gracefully (no panic, no partial state)
-5. Post the triggering event as a reply using `thread_ts`.
+6. Event-specific behavior:
+   - `pullrequest:created` — the opening message IS the notification; no separate reply is posted
+   - `pullrequest:updated` — edit the opening message via `chat.update`; no reply posted
+   - All other events — post as a threaded reply using `thread_ts`
+
+### Error Handling
+
+- **Hard errors** (malformed JSON for recognized event keys) — returned to the caller.
+- **Soft errors** (API failures, store failures, missing channel) — logged and swallowed, returning nil. This ensures the consumer can always respond 200 to Bitbucket, preventing retry storms.
 
 ### Build Status Events
 
@@ -137,11 +154,11 @@ Required OAuth scopes: `chat:write`. Add `chat:write.public` if the bot needs to
 
 ### Testing Strategy
 
-- **Unit** — test event parsing, message formatting, and thread-lookup decision logic using mock adapters. This is the bulk of the test suite.
-- **Integration** — test concrete adapter implementations against real infrastructure spun up via docker-compose (e.g. a Redis-backed `ThreadStore`).
-- **E2E** — lives in `examples/`, fires real Bitbucket-shaped webhook payloads at a running instance and asserts against a Slack API stub.
+All tests run offline with zero external dependencies:
 
-An `examples/` directory provides a reference server wired with concrete adapters and a `docker-compose.yml` for running the full stack locally. This doubles as the E2E test harness.
+- **Unit** — test event parsing (`internal/event/`), message formatting (`internal/format/`), and API client behavior (`internal/slack/`, `internal/bitbucket/`) using `httptest` stubs.
+- **Integration** — `handler_test.go` tests the full public API flow using real fixture JSON files, mock adapters (`internal/testutil/`), and `httptest` servers for Slack and Bitbucket APIs. This is the most important test layer.
+- **E2E** — scaffolded in `examples/server/e2e_test.go` behind `//go:build e2e` tag for future use with the docker-compose stack.
 
 ### Supported Webhook Events
 
