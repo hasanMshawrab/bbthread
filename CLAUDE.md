@@ -70,6 +70,7 @@ bitslack/
 ├── .go-arch-lint.yml    # Architecture dependency rules
 ├── Makefile             # Build, test, lint, arch-lint, fmt, tools targets
 ├── README.md            # Usage guide and API documentation
+├── SETUP.md             # Step-by-step credential and ID setup guide for consumers
 ├── LICENSE              # MIT
 ├── .plan/               # Local planning scratch space — gitignored
 ├── .gitignore

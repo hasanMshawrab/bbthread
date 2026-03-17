@@ -126,17 +126,14 @@ bitslack.Config{
 }
 ```
 
-### Slack Bot Setup
+### Setup
 
-1. Create a Slack app at https://api.slack.com/apps
-2. Add OAuth scopes: `chat:write` (and `chat:write.public` if posting to channels the bot hasn't joined)
-3. Install to your workspace and copy the Bot User OAuth Token (`xoxb-...`)
-
-### Bitbucket Webhook Setup
-
-1. Go to your repository settings → Webhooks
-2. Add a webhook pointing to your server's `/webhook` endpoint
-3. Select the events you want to forward (pull request events + build status)
+See [SETUP.md](SETUP.md) for step-by-step instructions on:
+- Creating a Slack app and getting the bot token
+- Finding Slack user IDs and channel IDs
+- Generating a Bitbucket API token
+- Finding Bitbucket account IDs for user mapping
+- Adding the Bitbucket webhook to your repository
 
 ## How It Works
 
