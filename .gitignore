@@ -1,0 +1,40 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build output
+/server
+*.out
+
+# Test
+coverage.out
+coverage.html
+*.test
+*.prof
+
+# Dependency directories
+vendor/
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Plans (local scratch space)
+.plan/
+
+# Debug
+__debug_bin*
