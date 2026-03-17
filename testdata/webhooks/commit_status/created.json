@@ -1,0 +1,56 @@
+{
+  "actor": {
+    "type": "user",
+    "display_name": "Jane Author",
+    "uuid": "{bb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1}",
+    "account_id": "5b10a2844c20165700ede22h",
+    "nickname": "janeauthor",
+    "links": {
+      "self": { "href": "https://api.bitbucket.org/2.0/users/%7Bbb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1%7D" },
+      "html": { "href": "https://bitbucket.org/%7Bbb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1%7D" },
+      "avatar": { "href": "https://secure.gravatar.com/avatar/bb673a1b" }
+    }
+  },
+  "commit_status": {
+    "name": "Unit Tests",
+    "description": "Build started",
+    "state": "INPROGRESS",
+    "key": "my-ci-tool",
+    "url": "https://ci.example.com/builds/my-repo/BUILD-101",
+    "type": "build",
+    "created_on": "2024-01-15T10:05:00.000000+00:00",
+    "updated_on": "2024-01-15T10:05:00.000000+00:00",
+    "links": {
+      "commit": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/b7f6f6ef4c59"
+      },
+      "self": {
+        "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/b7f6f6ef4c59/statuses/build/my-ci-tool"
+      }
+    }
+  },
+  "repository": {
+    "type": "repository",
+    "full_name": "myworkspace/my-repo",
+    "name": "my-repo",
+    "scm": "git",
+    "is_private": true,
+    "uuid": "{dd895c3d-4f1c-58b4-d6f4-3c1d3b9bd9d3}",
+    "links": {
+      "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo" },
+      "html": { "href": "https://bitbucket.org/myworkspace/my-repo" },
+      "avatar": { "href": "https://bytebucket.org/ravatar/%7Bdd895c3d%7D?ts=default" }
+    },
+    "workspace": {
+      "type": "workspace",
+      "uuid": "{ee906d4e-5a2d-69c5-e7a5-4d2e4c0ce0e4}",
+      "name": "My Workspace",
+      "slug": "myworkspace",
+      "links": {
+        "self": { "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace" },
+        "html": { "href": "https://bitbucket.org/myworkspace" },
+        "avatar": { "href": "https://bitbucket.org/workspaces/myworkspace/avatar" }
+      }
+    }
+  }
+}

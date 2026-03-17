@@ -1,0 +1,192 @@
+{
+  "actor": {
+    "type": "user",
+    "display_name": "Bob Reviewer",
+    "uuid": "{cc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2}",
+    "account_id": "5b10a2844c20165700ede23i",
+    "nickname": "bobreviewer",
+    "links": {
+      "self": { "href": "https://api.bitbucket.org/2.0/users/%7Bcc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2%7D" },
+      "html": { "href": "https://bitbucket.org/%7Bcc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2%7D" },
+      "avatar": { "href": "https://secure.gravatar.com/avatar/cc784b2c" }
+    }
+  },
+  "comment": {
+    "id": 17,
+    "content": {
+      "raw": "Can we add a unit test for the edge case where input is nil?",
+      "html": "<p>Can we add a unit test for the edge case where input is nil?</p>",
+      "markup": "markdown"
+    },
+    "inline": {
+      "path": "pkg/handler/handler.go",
+      "from": null,
+      "to": 42
+    },
+    "created_on": "2024-01-15T11:30:00.000000+00:00",
+    "updated_on": "2024-01-15T11:30:00.000000+00:00",
+    "links": {
+      "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/comments/17" },
+      "html": { "href": "https://bitbucket.org/myworkspace/my-repo/pull-requests/42/_/diff#comment-17" }
+    }
+  },
+  "pullrequest": {
+    "type": "pullrequest",
+    "id": 42,
+    "title": "Add feature X",
+    "description": "This PR adds feature X to improve Y.",
+    "state": "OPEN",
+    "draft": false,
+    "author": {
+      "type": "user",
+      "display_name": "Jane Author",
+      "uuid": "{bb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1}",
+      "account_id": "5b10a2844c20165700ede22h",
+      "nickname": "janeauthor",
+      "links": {
+        "self": { "href": "https://api.bitbucket.org/2.0/users/%7Bbb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1%7D" },
+        "html": { "href": "https://bitbucket.org/%7Bbb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1%7D" },
+        "avatar": { "href": "https://secure.gravatar.com/avatar/bb673a1b" }
+      }
+    },
+    "source": {
+      "branch": { "name": "feature/add-feature-x" },
+      "commit": {
+        "type": "commit",
+        "hash": "b7f6f6ef4c59",
+        "links": {
+          "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/b7f6f6ef4c59" },
+          "html": { "href": "https://bitbucket.org/myworkspace/my-repo/commits/b7f6f6ef4c59" }
+        }
+      },
+      "repository": {
+        "type": "repository",
+        "full_name": "myworkspace/my-repo",
+        "name": "my-repo",
+        "scm": "git",
+        "is_private": true,
+        "uuid": "{dd895c3d-4f1c-58b4-d6f4-3c1d3b9bd9d3}",
+        "links": {
+          "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo" },
+          "html": { "href": "https://bitbucket.org/myworkspace/my-repo" },
+          "avatar": { "href": "https://bytebucket.org/ravatar/%7Bdd895c3d%7D?ts=default" }
+        }
+      }
+    },
+    "destination": {
+      "branch": { "name": "main" },
+      "commit": {
+        "type": "commit",
+        "hash": "ce5965ddd289",
+        "links": {
+          "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/commit/ce5965ddd289" },
+          "html": { "href": "https://bitbucket.org/myworkspace/my-repo/commits/ce5965ddd289" }
+        }
+      },
+      "repository": {
+        "type": "repository",
+        "full_name": "myworkspace/my-repo",
+        "name": "my-repo",
+        "scm": "git",
+        "is_private": true,
+        "uuid": "{dd895c3d-4f1c-58b4-d6f4-3c1d3b9bd9d3}",
+        "links": {
+          "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo" },
+          "html": { "href": "https://bitbucket.org/myworkspace/my-repo" },
+          "avatar": { "href": "https://bytebucket.org/ravatar/%7Bdd895c3d%7D?ts=default" }
+        }
+      }
+    },
+    "reviewers": [
+      {
+        "type": "user",
+        "display_name": "Bob Reviewer",
+        "uuid": "{cc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2}",
+        "account_id": "5b10a2844c20165700ede23i",
+        "nickname": "bobreviewer",
+        "links": {
+          "self": { "href": "https://api.bitbucket.org/2.0/users/%7Bcc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2%7D" },
+          "html": { "href": "https://bitbucket.org/%7Bcc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2%7D" },
+          "avatar": { "href": "https://secure.gravatar.com/avatar/cc784b2c" }
+        }
+      }
+    ],
+    "participants": [
+      {
+        "user": {
+          "type": "user",
+          "display_name": "Jane Author",
+          "uuid": "{bb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1}",
+          "account_id": "5b10a2844c20165700ede22h",
+          "nickname": "janeauthor",
+          "links": {
+            "self": { "href": "https://api.bitbucket.org/2.0/users/%7Bbb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1%7D" },
+            "html": { "href": "https://bitbucket.org/%7Bbb673a1b-2d9a-46f2-b4d2-1a9b1f7fb7b1%7D" },
+            "avatar": { "href": "https://secure.gravatar.com/avatar/bb673a1b" }
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "state": null,
+        "participated_on": "2024-01-15T10:00:00.000000+00:00"
+      },
+      {
+        "user": {
+          "type": "user",
+          "display_name": "Bob Reviewer",
+          "uuid": "{cc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2}",
+          "account_id": "5b10a2844c20165700ede23i",
+          "nickname": "bobreviewer",
+          "links": {
+            "self": { "href": "https://api.bitbucket.org/2.0/users/%7Bcc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2%7D" },
+            "html": { "href": "https://bitbucket.org/%7Bcc784b2c-3e0b-47a3-c5e3-2b0c2a8ac8c2%7D" },
+            "avatar": { "href": "https://secure.gravatar.com/avatar/cc784b2c" }
+          }
+        },
+        "role": "PARTICIPANT",
+        "approved": false,
+        "state": null,
+        "participated_on": "2024-01-15T11:30:00.000000+00:00"
+      }
+    ],
+    "close_source_branch": false,
+    "created_on": "2024-01-15T10:00:00.000000+00:00",
+    "updated_on": "2024-01-15T11:30:00.000000+00:00",
+    "links": {
+      "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42" },
+      "html": { "href": "https://bitbucket.org/myworkspace/my-repo/pull-requests/42" },
+      "commits": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/commits" },
+      "approve": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/approve" },
+      "diff": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/diff" },
+      "diffstat": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/diffstat" },
+      "comments": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/comments" },
+      "activity": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/activity" },
+      "merge": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/merge" },
+      "decline": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo/pullrequests/42/decline" }
+    }
+  },
+  "repository": {
+    "type": "repository",
+    "full_name": "myworkspace/my-repo",
+    "name": "my-repo",
+    "scm": "git",
+    "is_private": true,
+    "uuid": "{dd895c3d-4f1c-58b4-d6f4-3c1d3b9bd9d3}",
+    "links": {
+      "self": { "href": "https://api.bitbucket.org/2.0/repositories/myworkspace/my-repo" },
+      "html": { "href": "https://bitbucket.org/myworkspace/my-repo" },
+      "avatar": { "href": "https://bytebucket.org/ravatar/%7Bdd895c3d%7D?ts=default" }
+    },
+    "workspace": {
+      "type": "workspace",
+      "uuid": "{ee906d4e-5a2d-69c5-e7a5-4d2e4c0ce0e4}",
+      "name": "My Workspace",
+      "slug": "myworkspace",
+      "links": {
+        "self": { "href": "https://api.bitbucket.org/2.0/workspaces/myworkspace" },
+        "html": { "href": "https://bitbucket.org/myworkspace" },
+        "avatar": { "href": "https://bitbucket.org/workspaces/myworkspace/avatar" }
+      }
+    }
+  }
+}

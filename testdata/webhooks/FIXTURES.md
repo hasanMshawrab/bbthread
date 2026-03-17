@@ -1,0 +1,70 @@
+# Test Fixture Design
+
+This document explains the intentional design decisions in the webhook payload fixtures, so tests can be written with full awareness of what each file represents and why.
+
+## Shared Identifiers
+
+All fixtures use consistent fake data to allow testing cross-event scenarios:
+
+| Entity | Field | Value |
+|--------|-------|-------|
+| PR | `id` | `42` |
+| PR source commit | `hash` | `b7f6f6ef4c59` |
+| PR destination branch | `name` | `main` |
+| Repository | `full_name` | `myworkspace/my-repo` |
+| Author | `nickname` | `janeauthor` |
+| Reviewer 1 | `nickname` | `bobreviewer` |
+| Reviewer 2 | `nickname` | `alicereviewer` |
+
+The commit status payloads reference the same commit hash (`b7f6f6ef4c59`) as the PR's source commit. This makes them suitable for testing the PR-resolution flow: given a commit hash from a build status event, call the Bitbucket API and resolve it back to PR `42`.
+
+## Per-File Notes
+
+### `pullrequest/created.json`
+Baseline payload. One reviewer (Bob). Use this to test:
+- First-ever event for a PR → opening message is posted and `ts` is stored
+- Opening message content: title, author, repo, reviewers
+
+### `pullrequest/updated.json`
+Title changed to `"Add feature X (updated)"` and a second reviewer (Alice) added. Use this to test:
+- Opening message is edited via `chat.update` to reflect the new title
+- Alice's `@mention` is added to the opening message (Slack will notify her automatically)
+- Bob remains in the reviewers list (no spurious re-notification)
+
+### `pullrequest/approved.json`
+Bob's participant entry has `"approved": true` and `"state": "approved"`. Use this to test:
+- Approval event is posted as a thread reply, not a new top-level message
+- The actor and the approving user are the same person (Bob)
+
+### `pullrequest/unapproved.json`
+Bob's participant entry reverts to `"approved": false` and `"state": null`. Use this to test:
+- Unapproval is posted as a thread reply
+- Structurally identical to `approved.json` except for the participant state — both share the same `approval` wrapper field
+
+### `pullrequest/fulfilled.json`
+PR state is `"MERGED"`. Includes `merge_commit` (`764413d85e29`) and `closed_by` (Jane). Use this to test:
+- Merge event is posted as a thread reply
+- `close_source_branch: true` is set — relevant if the message surface area includes branch cleanup info
+
+### `pullrequest/rejected.json`
+PR state is `"DECLINED"`. Includes a `reason` field and `closed_by` (Bob). Use this to test:
+- Decline event is posted as a thread reply
+- `reason` is present — it should be surfaced in the Slack message if non-empty
+- The actor is a reviewer, not the author (Bob declined Jane's PR)
+
+### `pullrequest/comment_created.json`
+Includes an `inline` comment on `pkg/handler/handler.go` line 42. Bob's participant role has shifted to `"PARTICIPANT"` (not `"REVIEWER"`). Use this to test:
+- Comment event is posted as a thread reply
+- `comment.content.raw` is the plain text to surface; `html` can be ignored
+- Inline comments include a file path and line number — useful if the message links to the diff
+
+### `commit_status/created.json`
+Build state is `"INPROGRESS"`. No PR ID in the payload — only commit hash `b7f6f6ef4c59`. Use this to test:
+- The PR-resolution path: hash → Bitbucket API → PR `42`
+- If the thread `ts` already exists (from a prior PR event), the build notification is posted as a reply
+- If no `ts` exists yet (build triggered before any PR event), the backfill path is exercised: fetch PR details, post opening message, then post build status as reply
+
+### `commit_status/updated.json`
+Same build (`my-ci-tool`, commit `b7f6f6ef4c59`), state now `"SUCCESSFUL"`. Use this to test:
+- A follow-up build event on the same commit is correctly threaded under the same PR message
+- `updated_on` differs from `created_on` — both timestamps are present for either display or filtering logic
