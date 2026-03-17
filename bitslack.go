@@ -1,0 +1,101 @@
+package bitslack
+
+import (
+	"errors"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/hasanMshawrab/bitslack/internal/bitbucket"
+	"github.com/hasanMshawrab/bitslack/internal/slack"
+)
+
+const defaultHTTPTimeout = 10 * time.Second
+
+// Config holds all dependencies needed to construct a Client.
+type Config struct {
+	// SlackToken is the Slack bot token (xoxb-...). Required.
+	SlackToken string
+
+	// BitbucketToken is the Bitbucket access token for API calls. Required.
+	BitbucketToken string
+
+	// BitbucketBaseURL overrides the Bitbucket API base URL.
+	// Defaults to "https://api.bitbucket.org/2.0".
+	// Set to an httptest server URL in tests.
+	BitbucketBaseURL string
+
+	// SlackBaseURL overrides the Slack API base URL.
+	// Defaults to "https://slack.com/api".
+	// Set to an httptest server URL in tests.
+	SlackBaseURL string
+
+	// ThreadStore is the adapter for PR-to-thread mapping. Required.
+	ThreadStore ThreadStore
+
+	// ConfigStore is the adapter for repo/user lookups. Required.
+	ConfigStore ConfigStore
+
+	// Logger for library messages. Defaults to no-op if nil.
+	Logger Logger
+
+	// HTTPClient for outbound API calls. Defaults to 10s timeout if nil.
+	HTTPClient *http.Client
+}
+
+// Client is the bitslack engine. Safe for concurrent use.
+type Client struct {
+	threadStore ThreadStore
+	configStore ConfigStore
+	logger      Logger
+	bbClient    *bitbucket.Client
+	slackClient *slack.Client
+}
+
+// New validates the config and constructs a Client.
+func New(cfg Config) (*Client, error) {
+	if cfg.SlackToken == "" {
+		return nil, errors.New("bitslack: SlackToken is required")
+	}
+	if cfg.BitbucketToken == "" {
+		return nil, errors.New("bitslack: BitbucketToken is required")
+	}
+	if cfg.ThreadStore == nil {
+		return nil, errors.New("bitslack: ThreadStore is required")
+	}
+	if cfg.ConfigStore == nil {
+		return nil, errors.New("bitslack: ConfigStore is required")
+	}
+
+	if cfg.BitbucketBaseURL == "" {
+		cfg.BitbucketBaseURL = "https://api.bitbucket.org/2.0"
+	}
+	if cfg.SlackBaseURL == "" {
+		cfg.SlackBaseURL = "https://slack.com/api"
+	}
+	cfg.BitbucketBaseURL = strings.TrimRight(cfg.BitbucketBaseURL, "/")
+	cfg.SlackBaseURL = strings.TrimRight(cfg.SlackBaseURL, "/")
+
+	if cfg.Logger == nil {
+		cfg.Logger = noopLogger{}
+	}
+	if cfg.HTTPClient == nil {
+		cfg.HTTPClient = &http.Client{Timeout: defaultHTTPTimeout}
+	}
+
+	return &Client{
+		threadStore: cfg.ThreadStore,
+		configStore: cfg.ConfigStore,
+		logger:      cfg.Logger,
+		bbClient: bitbucket.NewClient(
+			cfg.BitbucketBaseURL,
+			cfg.BitbucketToken,
+			bitbucket.WithHTTPClient(cfg.HTTPClient),
+		),
+		slackClient: slack.NewClient(
+			cfg.SlackToken,
+			slack.WithHTTPClient(cfg.HTTPClient),
+			slack.WithBaseURL(cfg.SlackBaseURL),
+		),
+	}, nil
+}
