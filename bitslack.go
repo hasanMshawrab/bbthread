@@ -17,7 +17,11 @@ type Config struct {
 	// SlackToken is the Slack bot token (xoxb-...). Required.
 	SlackToken string
 
-	// BitbucketToken is the Bitbucket access token for API calls. Required.
+	// BitbucketUsername is the Atlassian account email for API auth. Required.
+	BitbucketUsername string
+
+	// BitbucketToken is the Bitbucket API token. Required.
+	// Used with BitbucketUsername for HTTP Basic auth.
 	BitbucketToken string
 
 	// BitbucketBaseURL overrides the Bitbucket API base URL.
@@ -57,6 +61,9 @@ func New(cfg Config) (*Client, error) {
 	if cfg.SlackToken == "" {
 		return nil, errors.New("bitslack: SlackToken is required")
 	}
+	if cfg.BitbucketUsername == "" {
+		return nil, errors.New("bitslack: BitbucketUsername is required")
+	}
 	if cfg.BitbucketToken == "" {
 		return nil, errors.New("bitslack: BitbucketToken is required")
 	}
@@ -89,6 +96,7 @@ func New(cfg Config) (*Client, error) {
 		logger:      cfg.Logger,
 		bbClient: bitbucket.NewClient(
 			cfg.BitbucketBaseURL,
+			cfg.BitbucketUsername,
 			cfg.BitbucketToken,
 			bitbucket.WithHTTPClient(cfg.HTTPClient),
 		),

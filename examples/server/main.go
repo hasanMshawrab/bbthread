@@ -34,6 +34,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	bbUsername := os.Getenv("BITBUCKET_USERNAME")
+	if bbUsername == "" {
+		logger.Error("BITBUCKET_USERNAME is required")
+		os.Exit(1)
+	}
+
 	bbToken := os.Getenv("BITBUCKET_TOKEN")
 	if bbToken == "" {
 		logger.Error("BITBUCKET_TOKEN is required")
@@ -44,11 +50,12 @@ func main() {
 	userMap := parseMap(os.Getenv("BITSLACK_USER_MAP"))
 
 	client, err := bitslack.New(bitslack.Config{
-		SlackToken:     slackToken,
-		BitbucketToken: bbToken,
-		ThreadStore:    &memThreadStore{},
-		ConfigStore:    &memConfigStore{channels: channelMap, users: userMap},
-		Logger:         &slogLogger{l: logger},
+		SlackToken:        slackToken,
+		BitbucketUsername: bbUsername,
+		BitbucketToken:    bbToken,
+		ThreadStore:       &memThreadStore{},
+		ConfigStore:       &memConfigStore{channels: channelMap, users: userMap},
+		Logger:            &slogLogger{l: logger},
 	})
 	if err != nil {
 		logger.Error("failed to create bitslack client", "error", err)

@@ -14,6 +14,7 @@ var ErrNotFound = errors.New("bitbucket: not found")
 // Client is an authenticated Bitbucket REST API v2 client.
 type Client struct {
 	baseURL    string
+	username   string
 	token      string
 	httpClient *http.Client
 }
@@ -27,9 +28,10 @@ func WithHTTPClient(c *http.Client) Option {
 }
 
 // NewClient constructs a Bitbucket API client.
-func NewClient(baseURL, token string, opts ...Option) *Client {
+func NewClient(baseURL, username, token string, opts ...Option) *Client {
 	c := &Client{
 		baseURL:    baseURL,
+		username:   username,
 		token:      token,
 		httpClient: http.DefaultClient,
 	}
@@ -46,7 +48,7 @@ func (c *Client) get(ctx context.Context, path string, dst any) error {
 	if err != nil {
 		return fmt.Errorf("bitbucket: create request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.SetBasicAuth(c.username, c.token)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

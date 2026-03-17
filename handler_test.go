@@ -98,13 +98,14 @@ func newHarness(t *testing.T) *testHarness {
 	})
 
 	client, err := bitslack.New(bitslack.Config{
-		SlackToken:       "xoxb-test",
-		BitbucketToken:   "bb-test",
-		SlackBaseURL:     h.SlackServer.URL,
-		BitbucketBaseURL: h.BBServer.URL,
-		ThreadStore:      h.ThreadStore,
-		ConfigStore:      h.ConfigStore,
-		Logger:           h.Logger,
+		SlackToken:        "xoxb-test",
+		BitbucketUsername: "bb-user",
+		BitbucketToken:    "bb-test",
+		SlackBaseURL:      h.SlackServer.URL,
+		BitbucketBaseURL:  h.BBServer.URL,
+		ThreadStore:       h.ThreadStore,
+		ConfigStore:       h.ConfigStore,
+		Logger:            h.Logger,
 	})
 	if err != nil {
 		t.Fatalf("bitslack.New: %v", err)
@@ -634,13 +635,14 @@ func TestHandler_BitbucketAPIFails(t *testing.T) {
 
 	// Re-create client with new BB URL
 	client, err := bitslack.New(bitslack.Config{
-		SlackToken:       "xoxb-test",
-		BitbucketToken:   "bb-test",
-		SlackBaseURL:     h.SlackServer.URL,
-		BitbucketBaseURL: h.BBServer.URL,
-		ThreadStore:      h.ThreadStore,
-		ConfigStore:      h.ConfigStore,
-		Logger:           h.Logger,
+		SlackToken:        "xoxb-test",
+		BitbucketUsername: "bb-user",
+		BitbucketToken:    "bb-test",
+		SlackBaseURL:      h.SlackServer.URL,
+		BitbucketBaseURL:  h.BBServer.URL,
+		ThreadStore:       h.ThreadStore,
+		ConfigStore:       h.ConfigStore,
+		Logger:            h.Logger,
 	})
 	if err != nil {
 		t.Fatalf("bitslack.New: %v", err)
@@ -682,13 +684,14 @@ func TestHandler_NilLogger(t *testing.T) {
 
 	// Logger is nil — should use noopLogger and not panic
 	client, err := bitslack.New(bitslack.Config{
-		SlackToken:       "xoxb-test",
-		BitbucketToken:   "bb-test",
-		SlackBaseURL:     slackSrv.URL,
-		BitbucketBaseURL: bbSrv.URL,
-		ThreadStore:      ts,
-		ConfigStore:      cs,
-		Logger:           nil,
+		SlackToken:        "xoxb-test",
+		BitbucketUsername: "bb-user",
+		BitbucketToken:    "bb-test",
+		SlackBaseURL:      slackSrv.URL,
+		BitbucketBaseURL:  bbSrv.URL,
+		ThreadStore:       ts,
+		ConfigStore:       cs,
+		Logger:            nil,
 	})
 	if err != nil {
 		t.Fatalf("bitslack.New: %v", err)

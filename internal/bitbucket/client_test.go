@@ -2,6 +2,7 @@ package bitbucket_test
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -77,7 +78,7 @@ func TestGetPullRequest_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	pr, err := client.GetPullRequest(context.Background(), "myworkspace", "my-repo", 42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -121,7 +122,7 @@ func TestGetPullRequest_NotFound(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	_, err := client.GetPullRequest(context.Background(), "myworkspace", "my-repo", 999)
 	if !errors.Is(err, bitbucket.ErrNotFound) {
 		t.Errorf("err = %v, want ErrNotFound", err)
@@ -134,7 +135,7 @@ func TestGetPullRequest_ServerError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	_, err := client.GetPullRequest(context.Background(), "myworkspace", "my-repo", 42)
 	if err == nil {
 		t.Fatal("expected error for 500 response")
@@ -148,7 +149,7 @@ func TestGetPullRequest_MalformedResponse(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	_, err := client.GetPullRequest(context.Background(), "myworkspace", "my-repo", 42)
 	if err == nil {
 		t.Fatal("expected error for malformed JSON")
@@ -167,7 +168,7 @@ func TestGetPullRequestsForCommit_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	prs, err := client.GetPullRequestsForCommit(context.Background(), "myworkspace", "my-repo", "b7f6f6ef4c59")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -187,7 +188,7 @@ func TestGetPullRequestsForCommit_NoPRs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	prs, err := client.GetPullRequestsForCommit(context.Background(), "myworkspace", "my-repo", "deadbeef")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -203,7 +204,7 @@ func TestGetPullRequestsForCommit_ServerError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	_, err := client.GetPullRequestsForCommit(context.Background(), "myworkspace", "my-repo", "abc123")
 	if err == nil {
 		t.Fatal("expected error for 500 response")
@@ -219,11 +220,15 @@ func TestClient_AuthorizationHeader(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := bitbucket.NewClient(srv.URL, "test-token", bitbucket.WithHTTPClient(srv.Client()))
+	client := bitbucket.NewClient(srv.URL, "test-user", "test-token", bitbucket.WithHTTPClient(srv.Client()))
 	_, _ = client.GetPullRequest(context.Background(), "myworkspace", "my-repo", 42)
 
-	want := "Bearer test-token"
+	want := "Basic " + base64Encode("test-user:test-token")
 	if gotAuth != want {
 		t.Errorf("Authorization header = %q, want %q", gotAuth, want)
 	}
+}
+
+func base64Encode(s string) string {
+	return base64.StdEncoding.EncodeToString([]byte(s))
 }
