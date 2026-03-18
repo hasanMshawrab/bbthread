@@ -1095,13 +1095,13 @@ func TestHandler_Pipeline_StepsAPIFailure_StillPosts(t *testing.T) {
 	}
 	// Should have logged an error about the steps API.
 	found := false
-	for _, msg := range h.Logger.ErrorMsgs {
+	for _, msg := range h.Logger.GetErrorMsgs() {
 		if strings.Contains(msg, "pipeline steps") {
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("expected error log about pipeline steps, got: %v", h.Logger.ErrorMsgs)
+		t.Errorf("expected error log about pipeline steps, got: %v", h.Logger.GetErrorMsgs())
 	}
 }
 
@@ -1203,13 +1203,13 @@ func TestHandler_Pipeline_ManualStopSuppressed(t *testing.T) {
 	}
 	// Should have logged an info about suppression.
 	found := false
-	for _, msg := range h.Logger.InfoMsgs {
+	for _, msg := range h.Logger.GetInfoMsgs() {
 		if strings.Contains(msg, "suppressing") {
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("expected info log about suppression, got: %v", h.Logger.InfoMsgs)
+		t.Errorf("expected info log about suppression, got: %v", h.Logger.GetInfoMsgs())
 	}
 }
 
