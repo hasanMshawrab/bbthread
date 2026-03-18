@@ -231,7 +231,7 @@ Trigger labels: `PUSH` → `automatic trigger`, `MANUAL` → `manual trigger`, `
 
 Result text: `COMPLETE` → `Passed`, `FAILED` → `Failed`, `ERROR` → `Error`, `STOPPED` → `Stopped`.
 
-**Step breakdown:** After the debounce delay, the handler calls `GET /repositories/{workspace}/{repo}/pipelines/{pipeline.uuid}/steps/` to fetch step details. Note: the steps API requires `pipeline.uuid` (the build UUID, from OTel attribute `pipeline.uuid`), not `pipeline_run.uuid`. Each step is rendered on its own line below the header. Step result emojis: `✅` SUCCESSFUL, `❌` FAILED, `🔴` ERROR, `🛑` STOPPED, `⏭` NOT_RUN. Failed and errored steps are hyperlinked to the Bitbucket UI; other steps show a plain name.
+**Step breakdown:** After the debounce delay, the handler calls `GET /repositories/{workspace}/{repo}/pipelines/{pipeline.uuid}/steps/` to fetch step details. Note: the steps API requires `pipeline.uuid` (the build UUID, from OTel attribute `pipeline.uuid`), not `pipeline_run.uuid`. Each step is rendered on its own line below the header. Step result symbols: `✓` SUCCESSFUL, `✗` FAILED, `✗` ERROR, `–` STOPPED, `–` NOT_RUN. Failed and errored steps are hyperlinked to the Bitbucket UI; other steps show a plain name.
 
 Step URLs use the format: `.../pipelines/results/{pipeline.uuid}/runs/{pipeline_run.uuid}/steps/{step.uuid}` — `pipeline.uuid` for the `results/` segment, `pipeline_run.uuid` for the `runs/` segment.
 

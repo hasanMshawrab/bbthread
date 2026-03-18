@@ -1119,8 +1119,8 @@ func TestHandler_Pipeline_StepBreakdownIncluded(t *testing.T) {
 		t.Errorf("expected ⚙️ in message, got %q", text)
 	}
 	// Successful step: plain name (not hyperlinked).
-	if !strings.Contains(text, "✅ Lint") {
-		t.Errorf("expected '✅ Lint' in message, got %q", text)
+	if !strings.Contains(text, "✓ Lint") {
+		t.Errorf("expected '✓ Lint' in message, got %q", text)
 	}
 	// Failed step: hyperlinked with exact URL built from fixture UUIDs.
 	// buildStepURL encodes { } as %7B %7D.

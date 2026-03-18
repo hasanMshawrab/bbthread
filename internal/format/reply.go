@@ -17,13 +17,11 @@ const (
 	defaultCommentSummaryLength = 200
 	secondsPerMinute            = 60
 
-	emojiCheck  = "✅"
-	emojiCross  = "❌"
-	emojiRed    = "🔴"
-	emojiStop   = "⏹"
-	emojiStopHD = "🛑"
-	emojiSkip   = "⏭"
-	emojiSpin   = "🔄"
+	emojiCheck = "✅"
+	emojiCross = "❌"
+	emojiRed   = "🔴"
+	emojiStop  = "⏹"
+	emojiSpin  = "🔄"
 )
 
 // CommentDisplay controls how much of a comment's body is shown in Slack.
@@ -275,17 +273,13 @@ func pipelineResultText(result string) string {
 func stepResultEmoji(result string) string {
 	switch result {
 	case stateSuccessful:
-		return emojiCheck
-	case stateFailed:
-		return emojiCross
-	case stateError:
-		return emojiRed
-	case stateStopped:
-		return emojiStopHD
-	case "NOT_RUN":
-		return emojiSkip
+		return "✓"
+	case stateFailed, stateError:
+		return "✗"
+	case stateStopped, "NOT_RUN":
+		return "–"
 	default:
-		return "❓"
+		return "–"
 	}
 }
 

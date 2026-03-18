@@ -361,13 +361,13 @@ func TestReply_PipelineWithSteps_FailedStepLinked(t *testing.T) {
 	assertContains(t, text, "❌")
 	assertContains(t, text, "Failed")
 	// Step breakdown
-	assertContains(t, text, "✅ Lint")
+	assertContains(t, text, "✓ Lint")
 	assertContains(t, text, "• 12s")
 	// Failed step is linked.
 	assertContains(t, text, "<https://example.com/step/2|Test>")
 	assertContains(t, text, "• 18s")
-	// NOT_RUN step shown with ⏭ and no link.
-	assertContains(t, text, "⏭ Deploy")
+	// NOT_RUN step shown with – and no link.
+	assertContains(t, text, "– Deploy")
 }
 
 func TestReply_PipelineWithSteps_ErrorStepLinked(t *testing.T) {
@@ -409,7 +409,7 @@ func TestReply_PipelineWithSteps_StoppedStepNotLinked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertContains(t, text, "🛑 Build")
+	assertContains(t, text, "– Build")
 	// Stopped step is NOT linked.
 	assertNotContains(t, text, "<https://example.com/step/1|Build>")
 }
