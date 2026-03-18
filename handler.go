@@ -316,18 +316,24 @@ func (c *Client) processPipelineRun(ev *event.Event) {
 		return
 	}
 
-	replyText, fmtErr := format.Reply(ev, userResolver(c.configStore), c.formatOpts)
+	resolve := userResolver(c.configStore)
+
+	// Thread reply: omit repo/branch (visible in the PR opening message above).
+	linkedOpts := c.formatOpts
+	linkedOpts.PipelineLinkedToPR = true
+	linkedText, fmtErr := format.Reply(ev, resolve, linkedOpts)
 	if fmtErr != nil {
 		c.logger.Error(fmt.Sprintf("bitslack: format pipeline reply for %s: %v", repoFullName, fmtErr))
 		return
 	}
 
-	if run.RefType == "BRANCH" && c.postPipelineToLinkedPR(ctx, run, channel, replyText) {
+	if run.RefType == "BRANCH" && c.postPipelineToLinkedPR(ctx, run, channel, linkedText) {
 		return
 	}
 
-	// No linked PR (no open PR for branch, or TAG target): post standalone top-level message.
-	if _, postErr := c.slackClient.PostMessage(ctx, channel, "", replyText, nil); postErr != nil {
+	// No linked PR (no open PR for branch, or TAG target): post standalone with full context.
+	standaloneText, _ := format.Reply(ev, resolve, c.formatOpts)
+	if _, postErr := c.slackClient.PostMessage(ctx, channel, "", standaloneText, nil); postErr != nil {
 		c.logger.Error(fmt.Sprintf("bitslack: post standalone pipeline message for %s: %v", repoFullName, postErr))
 	}
 }
