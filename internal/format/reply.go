@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hasanMshawrab/bitslack/internal/event"
+	"github.com/hasanMshawrab/bitslack/internal/format/markdown"
 )
 
 const (
@@ -114,21 +115,24 @@ func formatCommentCreated(ev *event.PullRequestEvent, resolve UserResolver, opts
 
 	header := fmt.Sprintf("💬 %s %s%s", actor, action, location)
 
+	// Convert comment body from Bitbucket markdown to Slack mrkdwn.
+	converted := markdown.ToSlack(comment.Content.Raw, resolve)
+
 	// Build content block.
 	var content string
 	switch opts.CommentContent {
 	case CommentDisplayFull:
-		content = "\n> " + comment.Content.Raw
+		if converted != "" {
+			content = "\n" + converted
+		}
 	case CommentDisplaySummary:
 		summaryLen := opts.CommentSummaryLength
 		if summaryLen <= 0 {
 			summaryLen = defaultCommentSummaryLength
 		}
-		runes := []rune(comment.Content.Raw)
-		if len(runes) > summaryLen {
-			content = "\n> " + string(runes[:summaryLen]) + "…"
-		} else {
-			content = "\n> " + comment.Content.Raw
+		truncated := markdown.Truncate(converted, summaryLen)
+		if truncated != "" {
+			content = "\n" + truncated
 		}
 	case CommentDisplayNone:
 		// omit body
