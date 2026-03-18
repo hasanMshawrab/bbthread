@@ -526,13 +526,17 @@ func TestHandler_PullRequestFulfilled(t *testing.T) {
 		t.Fatalf("Handler returned error: %v", err)
 	}
 
+	// fulfilled: 1 postMessage (reply) + 1 chat.update (status refresh to "Merged")
 	calls := h.getSlackCalls()
-	if len(calls) != 1 {
-		t.Fatalf("expected 1 Slack call, got %d", len(calls))
+	if len(calls) != 2 {
+		t.Fatalf("expected 2 Slack calls (reply + update), got %d", len(calls))
 	}
 	text, _ := calls[0].Body["text"].(string)
 	if !strings.Contains(text, "merged") {
 		t.Errorf("expected reply to contain 'merged', got %q", text)
+	}
+	if calls[1].Path != "/chat.update" {
+		t.Errorf("call 1: expected /chat.update, got %s", calls[1].Path)
 	}
 }
 
@@ -546,9 +550,10 @@ func TestHandler_PullRequestRejected(t *testing.T) {
 		t.Fatalf("Handler returned error: %v", err)
 	}
 
+	// rejected: 1 postMessage (reply) + 1 chat.update (status refresh to "Closed")
 	calls := h.getSlackCalls()
-	if len(calls) != 1 {
-		t.Fatalf("expected 1 Slack call, got %d", len(calls))
+	if len(calls) != 2 {
+		t.Fatalf("expected 2 Slack calls (reply + update), got %d", len(calls))
 	}
 	text, _ := calls[0].Body["text"].(string)
 	if !strings.Contains(text, "declined") {
@@ -556,6 +561,9 @@ func TestHandler_PullRequestRejected(t *testing.T) {
 	}
 	if !strings.Contains(text, "architecture changes") {
 		t.Errorf("expected reply to contain reason text, got %q", text)
+	}
+	if calls[1].Path != "/chat.update" {
+		t.Errorf("call 1: expected /chat.update, got %s", calls[1].Path)
 	}
 }
 

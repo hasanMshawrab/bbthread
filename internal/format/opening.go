@@ -70,6 +70,7 @@ func OpeningMessage(pr *event.PullRequest, resolve UserResolver) (string, []slac
 	// Fields section (indented 4 spaces to align visually with header content)
 	var fields []string
 	fields = append(fields, fmt.Sprintf("    *Title:* %s", pr.Title))
+	fields = append(fields, fmt.Sprintf("    *Status:* %s", prStateLabel(pr.State)))
 	fields = append(fields, fmt.Sprintf("    *Author:* %s", mention(pr.Author.AccountID, pr.Author.Nickname, resolve)))
 
 	// Reviewers with approval checkmarks
@@ -116,6 +117,20 @@ func OpeningMessage(pr *event.PullRequest, resolve UserResolver) (string, []slac
 	fallback := fmt.Sprintf("%s | %s", pr.Title, repoName)
 
 	return fallback, blocks
+}
+
+// prStateLabel maps Bitbucket PR states to display strings.
+func prStateLabel(state string) string {
+	switch state {
+	case "OPEN":
+		return "Open"
+	case "MERGED":
+		return "Merged"
+	case "DECLINED":
+		return "Closed"
+	default:
+		return state
+	}
 }
 
 // mention returns "<@slackID>" if mapped, or "@nickname" as fallback.

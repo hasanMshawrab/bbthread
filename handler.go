@@ -409,9 +409,10 @@ func (c *Client) postPipelineToLinkedPR(
 	return true
 }
 
-// isApprovalEvent returns true for pullrequest:approved and pullrequest:unapproved events.
+// isApprovalEvent returns true for events that require refreshing the opening message.
 func isApprovalEvent(key string) bool {
-	return key == event.KeyPRApproved || key == event.KeyPRUnapproved
+	return key == event.KeyPRApproved || key == event.KeyPRUnapproved ||
+		key == event.KeyPRFulfilled || key == event.KeyPRRejected
 }
 
 // buildPRKey constructs the thread store key for a PR.
