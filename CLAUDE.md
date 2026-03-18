@@ -108,14 +108,14 @@ The first message posted for a PR (either on `pullrequest:created` or backfilled
 🔀 *[{repo}] Pull Request <{url}|#{id}>* • {source branch} → {destination branch}
 ```
 
-**Fields section** (indented 4 spaces):
+**Fields section:**
 ```
-    *Title:* {pr title}
-    *Status:* Open | Merged | Closed
-    *Author:* {mention}
-    *Reviewers:* ✅ {approved mention} • {pending mention}   ← ✅ only for approved reviewers
-    *Also approved:* {mention}                               ← only when non-reviewer participants approved
-    *Ticket:* <url|View Ticket>                             ← only when a ClickUp URL is in description
+*Title:* {pr title}
+*Status:* Open | Merged | Closed
+*Author:* {mention}
+*Reviewers:* ✅ {approved mention} • {pending mention}   ← ✅ only for approved reviewers
+*Also approved:* {mention}                               ← only when non-reviewer participants approved
+*Ticket:* <url|View Ticket>                             ← only when a ClickUp URL is in description
 ```
 
 - `*Repository:*` labeled field is omitted — the repo name is embedded in the header.
@@ -211,9 +211,19 @@ The `account.uuid` is used as the workspace identifier (Bitbucket accepts UUIDs 
 
 **Duration:** Computed from OTel `startTimeUnixNano` and `endTimeUnixNano` string fields on the span. Formatted as `Xs` for runs under a minute, `Xm Ys` for longer runs.
 
-**Message format:** Pipeline results are formatted as a header line followed by indented per-step lines:
+**Message format:** Pipeline results use two header formats depending on context:
+
+- **Thread reply** (linked to a PR — repo and branch are visible in the opening message above):
+```
+⚙️ *Pipeline <{url}|#{run}>* • {trigger label} — {emoji} {result text} • {duration}
+```
+- **Standalone** (no linked PR, or tag target):
 ```
 ⚙️ *[{repo}] Pipeline <{url}|#{run}>* • {branch} • {trigger label} — {emoji} {result text} • {duration}
+```
+
+Both formats are followed by indented per-step lines when step data is available:
+```
     {step emoji} {step name or <url|step name>} • {step duration}
     ...
 ```
@@ -221,7 +231,9 @@ Trigger labels: `PUSH` → `automatic trigger`, `MANUAL` → `manual trigger`, `
 
 Result text: `COMPLETE` → `Passed`, `FAILED` → `Failed`, `ERROR` → `Error`, `STOPPED` → `Stopped`.
 
-**Step breakdown:** After the debounce delay, the handler calls `GET /repositories/{workspace}/{repo}/pipelines/{uuid}/steps/` to fetch step details. Each step is rendered on its own line below the header. Step result emojis: `✅` SUCCESSFUL, `❌` FAILED, `🔴` ERROR, `🛑` STOPPED, `⏭` NOT_RUN. Failed and errored steps are hyperlinked to the Bitbucket UI; other steps show a plain name.
+**Step breakdown:** After the debounce delay, the handler calls `GET /repositories/{workspace}/{repo}/pipelines/{pipeline.uuid}/steps/` to fetch step details. Note: the steps API requires `pipeline.uuid` (the build UUID, from OTel attribute `pipeline.uuid`), not `pipeline_run.uuid`. Each step is rendered on its own line below the header. Step result emojis: `✅` SUCCESSFUL, `❌` FAILED, `🔴` ERROR, `🛑` STOPPED, `⏭` NOT_RUN. Failed and errored steps are hyperlinked to the Bitbucket UI; other steps show a plain name.
+
+Step URLs use the format: `.../pipelines/results/{pipeline.uuid}/runs/{pipeline_run.uuid}/steps/{step.uuid}` — `pipeline.uuid` for the `results/` segment, `pipeline_run.uuid` for the `runs/` segment.
 
 **Debounce:** `Handler` returns nil immediately. The first delivery of a `pipeline_run.uuid` schedules `processPipelineRun` via `time.AfterFunc` after `Config.PipelineDebounce` (default 3 s). A `sync.Mutex`-protected `map[string]struct{}` tracks in-flight UUIDs — subsequent deliveries of the same UUID are silently dropped until the goroutine cleans up. The goroutine uses `context.Background()` because the HTTP request context has expired by the time the timer fires.
 

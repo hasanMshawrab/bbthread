@@ -27,6 +27,8 @@ The pipeline payloads for `span_created_successful.json` and `span_created_faile
 
 All three pipeline fixtures omit `pipeline.repository.full_name` (absent from real Bitbucket OTel payloads) and instead include `pipeline.repository.uuid` (`{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}`) and `pipeline.account.uuid` (`{ffffffff-0000-1111-2222-333333333333}`). The test harness mock handles `GET /repositories/{accountUUID}/{repoUUID}` and returns `myworkspace/my-repo`, matching the channel and thread store seeds. Each fixture also includes a `pipeline_run.url` attribute used directly as the Slack message link.
 
+Each fixture includes both `pipeline_run.uuid` (used for debounce deduplication) and `pipeline.uuid` (used for the Bitbucket steps API and step URL construction). The `pipeline.uuid` values are distinct per fixture: `{dd444444-…}` (successful), `{ee555555-…}` (failed), `{ff666666-…}` (no_pr).
+
 ## Per-File Notes
 
 ### `pullrequest/created.json`
@@ -84,20 +86,21 @@ Same build (`my-ci-tool`, commit `b7f6f6ef4c59`), state now `"SUCCESSFUL"`. Use 
 - `updated_on` differs from `created_on` — both timestamps are present for either display or filtering logic
 
 ### `pipeline/span_created_successful.json`
-`bbc.pipeline_run` span. Target branch `feature/add-feature-x` (same as PR `42`'s source branch), result `COMPLETE` (OTel value for a successful run), trigger `PUSH`, run number `5` (delivered as `stringValue`, matching real Bitbucket OTel payloads). Uses UUID attributes instead of `full_name`. Use this to test:
+`bbc.pipeline_run` span. Target branch `feature/add-feature-x` (same as PR `42`'s source branch), result `COMPLETE` (OTel value for a successful run), trigger `PUSH`, run number `5` (delivered as `stringValue`, matching real Bitbucket OTel payloads). Uses UUID attributes instead of `full_name`. `pipeline.uuid` = `{dd444444-4444-4444-4444-444444444444}` (used for the steps API and step URLs). Use this to test:
 - Repository UUID resolution: `GetRepository` is called with the account and repo UUIDs, returning `myworkspace/my-repo`
 - Branch→PR lookup: Bitbucket API is called with the branch name, returns PR `42`
 - Pipeline result `COMPLETE` maps to `✅` emoji
-- Pipeline result is posted as a threaded reply under PR `42`'s thread
+- Pipeline result is posted as a threaded reply under PR `42`'s thread (without repo/branch in header)
 - Backfill path: if no thread exists for PR `42`, opening message is posted first
 
 ### `pipeline/span_created_failed.json`
-Same branch (`feature/add-feature-x`), result `FAILED`, run number `6`. Uses UUID attributes. Use this to test:
+Same branch (`feature/add-feature-x`), result `FAILED`, run number `6`. Uses UUID attributes. `pipeline.uuid` = `{ee555555-5555-5555-5555-555555555555}`. Use this to test:
 - Failed pipeline result produces a `❌` reply in the PR thread
 - Backfill path with a failed run (opening message still posted even when the build failed)
+- Step URLs use `pipeline.uuid` for the `results/` segment and `pipeline_run.uuid` for `runs/`
 
 ### `pipeline/span_created_no_pr.json`
-Target branch `main`, result `COMPLETE`, trigger `MANUAL`. Uses UUID attributes. No open PR exists for `main` in the test harness. Use this to test:
+Target branch `main`, result `COMPLETE`, trigger `MANUAL`. Uses UUID attributes. `pipeline.uuid` = `{ff666666-6666-6666-6666-666666666666}`. No open PR exists for `main` in the test harness. Use this to test:
 - Repository UUID resolution still runs before the branch→PR lookup
-- When no open PR is found for the target branch, a standalone top-level message is posted
+- When no open PR is found for the target branch, a standalone top-level message is posted (with repo and branch in header)
 - The standalone message has no `thread_ts`
