@@ -81,3 +81,79 @@ func TestToSlack_MixedDividerNotStripped(t *testing.T) {
 		t.Fatalf("mixed divider should not be stripped, got empty string")
 	}
 }
+
+func TestToSlack_Strikethrough(t *testing.T) {
+	got := markdown.ToSlack("~~strike~~", noopResolve)
+	if got != "~strike~" {
+		t.Fatalf("want %q, got %q", "~strike~", got)
+	}
+}
+
+func TestToSlack_NamedLink(t *testing.T) {
+	got := markdown.ToSlack("[click here](https://example.com)", noopResolve)
+	if got != "<https://example.com|click here>" {
+		t.Fatalf("want %q, got %q", "<https://example.com|click here>", got)
+	}
+}
+
+func TestToSlack_ImageWithAlt(t *testing.T) {
+	got := markdown.ToSlack("![screenshot](https://example.com/img.png)", noopResolve)
+	if got != "<https://example.com/img.png|📎 screenshot>" {
+		t.Fatalf("want %q, got %q", "<https://example.com/img.png|📎 screenshot>", got)
+	}
+}
+
+func TestToSlack_ImageNoAlt(t *testing.T) {
+	got := markdown.ToSlack("![](https://example.com/img.png)", noopResolve)
+	if got != "<https://example.com/img.png|📎 Image>" {
+		t.Fatalf("want %q, got %q", "<https://example.com/img.png|📎 Image>", got)
+	}
+}
+
+func TestToSlack_KramdownAttrStripped(t *testing.T) {
+	got := markdown.ToSlack("![](https://example.com/img.png){: .attr}", noopResolve)
+	if got != "<https://example.com/img.png|📎 Image>" {
+		t.Fatalf("want %q, got %q", "<https://example.com/img.png|📎 Image>", got)
+	}
+}
+
+func TestToSlack_KramdownAfterNamedLink(t *testing.T) {
+	got := markdown.ToSlack("[text](https://example.com){: .class}", noopResolve)
+	if got != "<https://example.com|text>" {
+		t.Fatalf("want %q, got %q", "<https://example.com|text>", got)
+	}
+}
+
+func TestToSlack_Mention_Resolved(t *testing.T) {
+	resolve := func(id string) string {
+		if id == "557058:abc123" {
+			return "USLACKID"
+		}
+		return ""
+	}
+	got := markdown.ToSlack("@{557058:abc123}", resolve)
+	if got != "<@USLACKID>" {
+		t.Fatalf("want %q, got %q", "<@USLACKID>", got)
+	}
+}
+
+func TestToSlack_Mention_Unresolved(t *testing.T) {
+	got := markdown.ToSlack("@{557058:abc123}", noopResolve)
+	if got != "@557058:abc123" {
+		t.Fatalf("want %q, got %q", "@557058:abc123", got)
+	}
+}
+
+func TestToSlack_MultilineBlock(t *testing.T) {
+	input := "## Title\n\nSome **bold** text.\n\n- item one\n- item two"
+	got := markdown.ToSlack(input, noopResolve)
+	if !strings.Contains(got, "*Title*") {
+		t.Fatalf("heading not converted; got %q", got)
+	}
+	if !strings.Contains(got, "*bold*") {
+		t.Fatalf("bold not converted; got %q", got)
+	}
+	if !strings.Contains(got, "• item one") {
+		t.Fatalf("list not converted; got %q", got)
+	}
+}
