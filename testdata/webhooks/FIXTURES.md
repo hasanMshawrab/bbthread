@@ -44,10 +44,12 @@ Title changed to `"Add feature X (updated)"` and a second reviewer (Alice) added
 Bob's participant entry has `"approved": true` and `"state": "approved"`. Use this to test:
 - Approval event is posted as a thread reply, not a new top-level message
 - The actor and the approving user are the same person (Bob)
+- After the reply, the handler fetches the full PR and calls `chat.update` to refresh the opening message with current approval state (Bob's reviewer entry should show ✅)
 
 ### `pullrequest/unapproved.json`
 Bob's participant entry reverts to `"approved": false` and `"state": null`. Use this to test:
 - Unapproval is posted as a thread reply
+- After the reply, the handler fetches the full PR and calls `chat.update` to remove Bob's ✅ from the opening message
 - Structurally identical to `approved.json` except for the participant state — both share the same `approval` wrapper field
 
 ### `pullrequest/fulfilled.json`
