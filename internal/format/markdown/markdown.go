@@ -9,7 +9,7 @@ import (
 
 var (
 	reHeading    = regexp.MustCompile(`^#{1,6}\s+(.+)$`)
-	reDivider    = regexp.MustCompile(`^[-*_]{3,}\s*$`)
+	reDivider    = regexp.MustCompile(`^(-{3,}|\*{3,}|_{3,})\s*$`)
 	reUList      = regexp.MustCompile(`^[*-]\s+(.+)$`)
 	reTable      = regexp.MustCompile(`^\|.*\|$`)
 	reInlineBold = regexp.MustCompile(`\*\*(.+?)\*\*`)

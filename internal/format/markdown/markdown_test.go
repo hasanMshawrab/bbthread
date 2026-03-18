@@ -73,3 +73,11 @@ func TestToSlack_TableStripped(t *testing.T) {
 		t.Fatalf("expected table pipes removed, got %q", got)
 	}
 }
+
+func TestToSlack_MixedDividerNotStripped(t *testing.T) {
+	// "-*-" is not a valid CommonMark divider — must not be stripped.
+	got := markdown.ToSlack("-*-", noopResolve)
+	if got == "" {
+		t.Fatalf("mixed divider should not be stripped, got empty string")
+	}
+}
