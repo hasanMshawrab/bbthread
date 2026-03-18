@@ -55,11 +55,13 @@ Bob's participant entry reverts to `"approved": false` and `"state": null`. Use 
 ### `pullrequest/fulfilled.json`
 PR state is `"MERGED"`. Includes `merge_commit` (`764413d85e29`) and `closed_by` (Jane). Use this to test:
 - Merge event is posted as a thread reply
+- After the reply, the handler fetches the full PR and calls `chat.update` to set `*Status:*` to `Merged`
 - `close_source_branch: true` is set — relevant if the message surface area includes branch cleanup info
 
 ### `pullrequest/rejected.json`
 PR state is `"DECLINED"`. Includes a `reason` field and `closed_by` (Bob). Use this to test:
 - Decline event is posted as a thread reply
+- After the reply, the handler fetches the full PR and calls `chat.update` to set `*Status:*` to `Closed`
 - `reason` is present — it should be surfaced in the Slack message if non-empty
 - The actor is a reviewer, not the author (Bob declined Jane's PR)
 
