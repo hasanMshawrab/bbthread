@@ -420,6 +420,84 @@ func TestReply_CommentCreated_NoContent(t *testing.T) {
 	assertNotContains(t, text, "this should not appear")
 }
 
+func TestReply_CommentCreated_MarkdownBoldConverted(t *testing.T) {
+	ev := &event.Event{
+		Key: event.KeyPRCommentCreated,
+		PullRequest: &event.PullRequestEvent{
+			Actor: event.User{Nickname: "bobreviewer", AccountID: "acct-bob"},
+			Comment: &event.Comment{
+				Content: event.CommentContent{Raw: "**bold** and ~~strike~~"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "*bold*")
+	assertContains(t, text, "~strike~")
+	assertNotContains(t, text, "**bold**")
+	assertNotContains(t, text, "~~strike~~")
+}
+
+func TestReply_CommentCreated_NoBlockquoteWrapper(t *testing.T) {
+	ev := &event.Event{
+		Key: event.KeyPRCommentCreated,
+		PullRequest: &event.PullRequestEvent{
+			Actor: event.User{Nickname: "bobreviewer", AccountID: "acct-bob"},
+			Comment: &event.Comment{
+				Content: event.CommentContent{Raw: "a comment"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNotContains(t, text, "\n> ")
+}
+
+func TestReply_CommentCreated_EmptyBodyOmitted(t *testing.T) {
+	ev := &event.Event{
+		Key: event.KeyPRCommentCreated,
+		PullRequest: &event.PullRequestEvent{
+			Actor: event.User{Nickname: "bobreviewer", AccountID: "acct-bob"},
+			Comment: &event.Comment{
+				Content: event.CommentContent{Raw: ""},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "💬")
+	assertNotContains(t, text, "\n\n")
+}
+
+func TestReply_CommentCreated_SummaryUsesDisplayChars(t *testing.T) {
+	// "[click here](https://example.com)" converts to "<https://example.com|click here>"
+	// display len 10; limit 10 → no truncation
+	ev := &event.Event{
+		Key: event.KeyPRCommentCreated,
+		PullRequest: &event.PullRequestEvent{
+			Actor: event.User{Nickname: "bobreviewer", AccountID: "acct-bob"},
+			Comment: &event.Comment{
+				Content: event.CommentContent{Raw: "[click here](https://example.com)"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{
+		CommentContent:       format.CommentDisplaySummary,
+		CommentSummaryLength: 10,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "<https://example.com|click here>")
+	assertNotContains(t, text, "…")
+}
+
 func TestReply_UnmappedActor(t *testing.T) {
 	ev := &event.Event{
 		Key: event.KeyPRApproved,
