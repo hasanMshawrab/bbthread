@@ -316,10 +316,10 @@ func TestReply_PipelineLinkedToPR_OmitsRepoAndBranch(t *testing.T) {
 		Key: event.KeyPipelineSpanCreated,
 		Pipeline: &event.PipelineRunEvent{
 			PipelineRun: event.PipelineRun{
-				Result:  "COMPLETE",
-				RefName: "feature/cool-thing",
-				URL:     "https://example.com/pipelines/1",
-				RunNumber: 7,
+				Result:     "COMPLETE",
+				RefName:    "feature/cool-thing",
+				URL:        "https://example.com/pipelines/1",
+				RunNumber:  7,
 				Repository: event.Repository{Name: "my-repo"},
 			},
 		},
