@@ -18,6 +18,7 @@ var (
 	reLink       = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
 	reStrike     = regexp.MustCompile(`~~(.+?)~~`)
 	reMention    = regexp.MustCompile(`@\{([^}]+)\}`)
+	reLinkToken  = regexp.MustCompile(`<[^|>]+\|([^>]*)>`)
 )
 
 // ToSlack converts Bitbucket markdown (CommonMark + Bitbucket extensions)
@@ -88,11 +89,104 @@ func ToSlack(raw string, resolve func(accountID string) string) string {
 	return s
 }
 
+type segment struct {
+	raw        string
+	displayLen int
+	isLink     bool
+}
+
+func tokenize(mrkdwn string) []segment {
+	var segs []segment
+	matches := reLinkToken.FindAllStringIndex(mrkdwn, -1)
+	pos := 0
+	for _, loc := range matches {
+		if loc[0] > pos {
+			text := mrkdwn[pos:loc[0]]
+			segs = append(segs, segment{raw: text, displayLen: len([]rune(text))})
+		}
+		raw := mrkdwn[loc[0]:loc[1]]
+		sub := reLinkToken.FindStringSubmatch(raw)
+		segs = append(segs, segment{
+			raw:        raw,
+			displayLen: len([]rune(sub[1])),
+			isLink:     true,
+		})
+		pos = loc[1]
+	}
+	if pos < len(mrkdwn) {
+		text := mrkdwn[pos:]
+		segs = append(segs, segment{raw: text, displayLen: len([]rune(text))})
+	}
+	return segs
+}
+
 // Truncate shortens mrkdwn to at most maxDisplay visible characters,
 // appending "…" if truncated. Links (<url|text>) are treated as atomic
 // tokens whose display length equals len([]rune(text)). Truncation happens
 // at the last word boundary before the limit. Open */_/~ spans are closed
 // after the ellipsis.
 func Truncate(mrkdwn string, maxDisplay int) string {
-	return mrkdwn
+	if maxDisplay <= 0 {
+		return mrkdwn
+	}
+	segs := tokenize(mrkdwn)
+
+	total := 0
+	for _, s := range segs {
+		total += s.displayLen
+	}
+	if total <= maxDisplay {
+		return mrkdwn
+	}
+
+	var result strings.Builder
+	remaining := maxDisplay
+
+	for _, seg := range segs {
+		if remaining <= 0 {
+			break
+		}
+		if seg.isLink {
+			if seg.displayLen <= remaining {
+				result.WriteString(seg.raw)
+				remaining -= seg.displayLen
+			} else {
+				break
+			}
+		} else {
+			if seg.displayLen <= remaining {
+				result.WriteString(seg.raw)
+				remaining -= seg.displayLen
+			} else {
+				runes := []rune(seg.raw)
+				cut := remaining
+				if cut > len(runes) {
+					cut = len(runes)
+				}
+				for cut > 0 && runes[cut-1] != ' ' {
+					cut--
+				}
+				for cut > 0 && runes[cut-1] == ' ' {
+					cut--
+				}
+				result.WriteString(string(runes[:cut]))
+				remaining = 0
+				break
+			}
+		}
+	}
+
+	truncated := strings.TrimRight(result.String(), " ")
+	return truncated + "…" + closedSpans(truncated)
+}
+
+func closedSpans(s string) string {
+	stripped := reLinkToken.ReplaceAllString(s, "")
+	var b strings.Builder
+	for _, marker := range []string{"~", "_", "*"} {
+		if strings.Count(stripped, marker)%2 != 0 {
+			b.WriteString(marker)
+		}
+	}
+	return b.String()
 }

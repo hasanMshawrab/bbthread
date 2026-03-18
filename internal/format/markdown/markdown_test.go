@@ -157,3 +157,78 @@ func TestToSlack_MultilineBlock(t *testing.T) {
 		t.Fatalf("list not converted; got %q", got)
 	}
 }
+
+func TestTruncate_ShortEnough(t *testing.T) {
+	got := markdown.Truncate("hello", 10)
+	if got != "hello" {
+		t.Fatalf("want %q, got %q", "hello", got)
+	}
+}
+
+func TestTruncate_ExactLimit(t *testing.T) {
+	got := markdown.Truncate("hello", 5)
+	if got != "hello" {
+		t.Fatalf("want %q, got %q", "hello", got)
+	}
+}
+
+func TestTruncate_BasicWordBoundary(t *testing.T) {
+	// "hello world" limit=8: "hello" fits (5), " world" would exceed.
+	got := markdown.Truncate("hello world", 8)
+	if got != "hello…" {
+		t.Fatalf("want %q, got %q", "hello…", got)
+	}
+}
+
+func TestTruncate_WordBoundaryExact(t *testing.T) {
+	// limit=9: cut=9 lands mid-word → back to space at index 5 → "hello"
+	got := markdown.Truncate("hello world", 9)
+	if got != "hello…" {
+		t.Fatalf("want %q, got %q", "hello…", got)
+	}
+}
+
+func TestTruncate_LinkIsAtomic_FitsExactly(t *testing.T) {
+	// display len of "click here" = 10; limit=10 → no truncation
+	got := markdown.Truncate("<https://example.com|click here>", 10)
+	if got != "<https://example.com|click here>" {
+		t.Fatalf("want full link, got %q", got)
+	}
+}
+
+func TestTruncate_LinkDisplayCounting_TooLong(t *testing.T) {
+	// "start " (6 display) + link "click here" (10 display) = 16.
+	// limit=10: text "start " written (remaining 10→4), link 10>4 → drop, break.
+	// Trailing space trimmed → "start…"
+	got := markdown.Truncate("start <https://example.com|click here>", 10)
+	if got != "start…" {
+		t.Fatalf("want %q, got %q", "start…", got)
+	}
+}
+
+func TestTruncate_TextThenLinkBothFit(t *testing.T) {
+	// "ab " (3) + "cd" (2) = 5 display; limit=10 → no truncation
+	got := markdown.Truncate("ab <https://example.com|cd>", 10)
+	if got != "ab <https://example.com|cd>" {
+		t.Fatalf("want full string, got %q", got)
+	}
+}
+
+func TestTruncate_ClosesOpenBoldSpan(t *testing.T) {
+	// "*bold text that is very long*" limit=6
+	// rune[5]=' ' → word boundary at cut=6 → trim space → cut=5 → "*bold"
+	// Result: "*bold" + "…" + closedSpans("*bold") = "*bold…*"
+	got := markdown.Truncate("*bold text that is very long*", 6)
+	if got != "*bold…*" {
+		t.Fatalf("want %q, got %q", "*bold…*", got)
+	}
+}
+
+func TestTruncate_NoSpanToClose(t *testing.T) {
+	// "no formatting here and this is long" limit=10
+	// cut=10 lands at index 9='t', back to space at index 2 → trim → "no"
+	got := markdown.Truncate("no formatting here and this is long", 10)
+	if got != "no…" {
+		t.Fatalf("want %q, got %q", "no…", got)
+	}
+}
