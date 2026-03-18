@@ -1,5 +1,7 @@
 # bitslack
 
+[![CI](https://github.com/hasanMshawrab/bitslack/actions/workflows/ci.yml/badge.svg)](https://github.com/hasanMshawrab/bitslack/actions/workflows/ci.yml)
+
 A Go library that receives Bitbucket webhook events and forwards them to Slack as **threaded messages** — all events for a given pull request appear as replies under a single opening message.
 
 ## Why
@@ -80,7 +82,7 @@ The library is backend-agnostic. You provide implementations of three interfaces
 
 ### ThreadStore
 
-Stores the PR → Slack thread timestamp mapping. Needs TTL support (30-day expiry recommended).
+Stores the PR → Slack thread timestamp mapping. Needs TTL support. A 30-day TTL is recommended — most PRs are merged or closed within that window, and entries beyond that are effectively stale.
 
 ```go
 type ThreadStore interface {
