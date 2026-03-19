@@ -1,6 +1,6 @@
 # Setup Guide
 
-Step-by-step instructions for obtaining all credentials and IDs required to run bitslack.
+Step-by-step instructions for obtaining all credentials and IDs required to run bbthread.
 
 ---
 
@@ -48,7 +48,7 @@ The ID looks like `U08XXXXXXXXX`.
 ## 4. Generate a Bitbucket API Token
 
 1. Go to [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
-2. Click **Create API token** and give it a label (e.g. `bitslack`)
+2. Click **Create API token** and give it a label (e.g. `bbthread`)
 3. When prompted to select scopes, enable the following under **Read**:
    - `read:repository:bitbucket` — required for all event families
    - `read:pullrequest:bitbucket` — required for all event families
@@ -60,7 +60,7 @@ The ID looks like `U08XXXXXXXXX`.
 Use the token as follows in your `Config`:
 
 ```go
-bitslack.Config{
+bbthread.Config{
     BitbucketUsername: "user@example.com",  // your Atlassian account email
     BitbucketToken:    "YOUR_API_TOKEN",
 }
@@ -72,7 +72,7 @@ bitslack.Config{
 
 The `account_id` is the stable identifier to use for Bitbucket → Slack user mapping.
 
-> **Why `account_id` and not `nickname`?** The `nickname` field is inconsistent — Bitbucket webhook payloads and the REST API can return different values for the same user. The `account_id` is always identical across both sources. See [issue #1](https://github.com/hasanMshawrab/bitslack/issues/1) for details.
+> **Why `account_id` and not `nickname`?** The `nickname` field is inconsistent — Bitbucket webhook payloads and the REST API can return different values for the same user. The `account_id` is always identical across both sources. See [issue #1](https://github.com/hasanMshawrab/bbthread/issues/1) for details.
 
 ### Your own account ID
 
@@ -115,7 +115,7 @@ This prints a table of `account_id | display_name` for every workspace member. U
 2. Go to **Repository settings** (gear icon in the left sidebar)
 3. Under **Workflow**, click **Webhooks → Add webhook**
 4. Fill in the form:
-   - **Title**: anything descriptive (e.g. `bitslack`)
+   - **Title**: anything descriptive (e.g. `bbthread`)
    - **URL**: your server's webhook endpoint (e.g. `https://your-server.com/webhook`)
    - **Status**: Active
 5. Under **Triggers**, choose **Choose from a full list of triggers** and select:

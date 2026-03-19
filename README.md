@@ -1,18 +1,18 @@
-# bitslack
+# bbthread
 
-[![CI](https://github.com/hasanMshawrab/bitslack/actions/workflows/ci.yml/badge.svg)](https://github.com/hasanMshawrab/bitslack/actions/workflows/ci.yml)
-[![GitHub stars](https://img.shields.io/github/stars/hasanMshawrab/bitslack?style=social)](https://github.com/hasanMshawrab/bitslack/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/hasanMshawrab/bitslack?style=social)](https://github.com/hasanMshawrab/bitslack/network/members)
+[![CI](https://github.com/hasanMshawrab/bbthread/actions/workflows/ci.yml/badge.svg)](https://github.com/hasanMshawrab/bbthread/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/hasanMshawrab/bbthread?style=social)](https://github.com/hasanMshawrab/bbthread/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/hasanMshawrab/bbthread?style=social)](https://github.com/hasanMshawrab/bbthread/network/members)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Go](https://img.shields.io/badge/Go-00ADD8?style=flat&logo=go&logoColor=white)](https://go.dev)
-[![Last commit](https://img.shields.io/github/last-commit/hasanMshawrab/bitslack)](https://github.com/hasanMshawrab/bitslack/commits/main)
-[![Latest release](https://img.shields.io/github/v/release/hasanMshawrab/bitslack?style=flat)](https://github.com/hasanMshawrab/bitslack/releases/latest)
+[![Last commit](https://img.shields.io/github/last-commit/hasanMshawrab/bbthread)](https://github.com/hasanMshawrab/bbthread/commits/main)
+[![Latest release](https://img.shields.io/github/v/release/hasanMshawrab/bbthread?style=flat)](https://github.com/hasanMshawrab/bbthread/releases/latest)
 
 A Go library that receives Bitbucket webhook events and forwards them to Slack as **threaded messages** — all events for a given pull request appear as replies under a single opening message.
 
 ## Why
 
-Bitbucket webhooks fire individual events with no threading. If your team uses Slack for PR notifications, you end up with a wall of disconnected messages. bitslack groups everything per PR into a single Slack thread: the opening message shows PR details, and every subsequent event (approval, comment, build status, merge) appears as a reply.
+Bitbucket webhooks fire individual events with no threading. If your team uses Slack for PR notifications, you end up with a wall of disconnected messages. bbthread groups everything per PR into a single Slack thread: the opening message shows PR details, and every subsequent event (approval, comment, build status, merge) appears as a reply.
 
 ## Features
 
@@ -36,7 +36,7 @@ Bitbucket webhooks fire individual events with no threading. If your team uses S
 ## Installation
 
 ```bash
-go get github.com/hasanMshawrab/bitslack
+go get github.com/hasanMshawrab/bbthread
 ```
 
 Requires Go 1.24.2 or later.
@@ -52,11 +52,11 @@ import (
     "log"
     "net/http"
 
-    "github.com/hasanMshawrab/bitslack"
+    "github.com/hasanMshawrab/bbthread"
 )
 
 func main() {
-    client, err := bitslack.New(bitslack.Config{
+    client, err := bbthread.New(bbthread.Config{
         SlackToken:        "xoxb-your-slack-bot-token",
         BitbucketUsername: "user@example.com",          // Atlassian account email
         BitbucketToken:    "your-bitbucket-token",
@@ -127,7 +127,7 @@ type Logger interface {
 ## Configuration
 
 ```go
-bitslack.Config{
+bbthread.Config{
     SlackToken:        "xoxb-...",                           // required
     BitbucketUsername: "user@example.com",                   // required (Atlassian account email)
     BitbucketToken:    "...",                                // required
@@ -139,14 +139,14 @@ bitslack.Config{
     SlackBaseURL:      "https://slack.com/api",              // optional (for testing)
 
     // Which webhook event families to handle. Defaults to [EventFamilyPullRequest].
-    EnabledEvents: []bitslack.EventFamily{
-        bitslack.EventFamilyPullRequest,
-        bitslack.EventFamilyPipeline, // opt-in; omit EventFamilyCommitStatus to avoid duplicates
+    EnabledEvents: []bbthread.EventFamily{
+        bbthread.EventFamilyPullRequest,
+        bbthread.EventFamilyPipeline, // opt-in; omit EventFamilyCommitStatus to avoid duplicates
     },
 
     // Controls how PR comment bodies and pipeline messages are rendered in Slack.
-    FormatOptions: bitslack.FormatOptions{
-        CommentContent:               bitslack.CommentDisplaySummary, // Full (default), Summary, or None
+    FormatOptions: bbthread.FormatOptions{
+        CommentContent:               bbthread.CommentDisplaySummary, // Full (default), Summary, or None
         CommentSummaryLength:         200,                            // max display chars in summary mode
         ShowCommentLink:              true,                           // append "<url|View comment>"
         DistinguishCommentReplies:    true,                           // label replies differently from top-level comments

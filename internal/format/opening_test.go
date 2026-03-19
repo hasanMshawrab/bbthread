@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasanMshawrab/bitslack/internal/event"
-	"github.com/hasanMshawrab/bitslack/internal/format"
-	"github.com/hasanMshawrab/bitslack/internal/slack"
+	"github.com/hasanMshawrab/bbthread/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/format"
+	"github.com/hasanMshawrab/bbthread/internal/slack"
 )
 
 func mapResolver(m map[string]string) format.UserResolver {

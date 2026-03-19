@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/hasanMshawrab/bitslack/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/event"
 )
 
 // pipelineWire is the wire type for a Bitbucket pipeline API response (partial).

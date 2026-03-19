@@ -1,11 +1,11 @@
-// Package bitslack routes Bitbucket webhook events to Slack as threaded messages.
+// Package bbthread routes Bitbucket webhook events to Slack as threaded messages.
 // All events for a given pull request are posted as replies under a single
 // opening message, keeping the Slack channel organised.
 //
 // Consumers embed the library by constructing a [Client] and calling
 // [Client.Handler] from their HTTP server:
 //
-//	client, err := bitslack.New(bitslack.Config{
+//	client, err := bbthread.New(bbthread.Config{
 //	    SlackToken:        "xoxb-...",
 //	    BitbucketUsername: "user@example.com",
 //	    BitbucketToken:    "atlassian-api-token",
@@ -17,7 +17,7 @@
 //
 // The library is backend-agnostic. Callers supply concrete implementations of
 // [ThreadStore], [ConfigStore], and optionally [Logger].
-package bitslack
+package bbthread
 
 import (
 	"errors"
@@ -26,9 +26,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hasanMshawrab/bitslack/internal/bitbucket"
-	"github.com/hasanMshawrab/bitslack/internal/format"
-	"github.com/hasanMshawrab/bitslack/internal/slack"
+	"github.com/hasanMshawrab/bbthread/internal/bitbucket"
+	"github.com/hasanMshawrab/bbthread/internal/format"
+	"github.com/hasanMshawrab/bbthread/internal/slack"
 )
 
 const (
@@ -142,7 +142,7 @@ type Config struct {
 	PipelineDebounce time.Duration
 }
 
-// Client is the bitslack engine. Safe for concurrent use.
+// Client is the bbthread engine. Safe for concurrent use.
 type Client struct {
 	threadStore     ThreadStore
 	configStore     ConfigStore
@@ -161,19 +161,19 @@ type Client struct {
 // New validates the config and constructs a Client.
 func New(cfg Config) (*Client, error) {
 	if cfg.SlackToken == "" {
-		return nil, errors.New("bitslack: SlackToken is required")
+		return nil, errors.New("bbthread: SlackToken is required")
 	}
 	if cfg.BitbucketUsername == "" {
-		return nil, errors.New("bitslack: BitbucketUsername is required")
+		return nil, errors.New("bbthread: BitbucketUsername is required")
 	}
 	if cfg.BitbucketToken == "" {
-		return nil, errors.New("bitslack: BitbucketToken is required")
+		return nil, errors.New("bbthread: BitbucketToken is required")
 	}
 	if cfg.ThreadStore == nil {
-		return nil, errors.New("bitslack: ThreadStore is required")
+		return nil, errors.New("bbthread: ThreadStore is required")
 	}
 	if cfg.ConfigStore == nil {
-		return nil, errors.New("bitslack: ConfigStore is required")
+		return nil, errors.New("bbthread: ConfigStore is required")
 	}
 
 	if cfg.BitbucketBaseURL == "" {

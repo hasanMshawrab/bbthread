@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hasanMshawrab/bitslack/internal/bitbucket"
+	"github.com/hasanMshawrab/bbthread/internal/bitbucket"
 )
 
 const cannedPRJSON = `{

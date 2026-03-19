@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasanMshawrab/bitslack/internal/format/markdown"
+	"github.com/hasanMshawrab/bbthread/internal/format/markdown"
 )
 
 func noopResolve(_ string) string { return "" }

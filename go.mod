@@ -1,3 +1,3 @@
-module github.com/hasanMshawrab/bitslack
+module github.com/hasanMshawrab/bbthread
 
 go 1.24.2

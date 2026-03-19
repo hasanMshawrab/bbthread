@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hasanMshawrab/bitslack/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/event"
 )
 
 const fixtureDir = "../../testdata/webhooks/"

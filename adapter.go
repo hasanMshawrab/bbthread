@@ -1,4 +1,4 @@
-package bitslack
+package bbthread
 
 import "context"
 

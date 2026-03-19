@@ -13,7 +13,7 @@ git checkout main && git pull origin main
 ### 2. Read the issue
 
 ```bash
-gh issue view <number> --repo hasanMshawrab/bitslack
+gh issue view <number> --repo hasanMshawrab/bbthread
 ```
 
 Extract:

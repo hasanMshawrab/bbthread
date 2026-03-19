@@ -9,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hasanMshawrab/bitslack/internal/slack"
+	"github.com/hasanMshawrab/bbthread/internal/slack"
 )
 
 func TestPostMessage_Success(t *testing.T) {

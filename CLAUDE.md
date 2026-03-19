@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Go module: `github.com/hasanMshawrab/bitslack`
+Go module: `github.com/hasanMshawrab/bbthread`
 Go version: 1.24.2
 
 A Go **library** that receives Bitbucket webhook events and forwards them to Slack as **threaded messages** — all events for a given PR appear as replies under the original message rather than as new top-level messages.
@@ -30,8 +30,8 @@ go test ./internal/... -run TestName  # Run a single test by name
 ## File System Structure
 
 ```
-bitslack/
-├── bitslack.go          # Public API: Config struct, FormatOptions, CommentDisplay, New() constructor, Client
+bbthread/
+├── bbthread.go          # Public API: Config struct, FormatOptions, CommentDisplay, New() constructor, Client
 ├── adapter.go           # Interface definitions: ThreadStore, ConfigStore, Logger
 ├── handler.go           # Client.Handler(ctx, eventKey, payload) — core flow orchestration
 ├── handler_test.go      # Integration tests: full flow with mocks + httptest stubs
@@ -82,7 +82,7 @@ bitslack/
 
 ### Key boundaries
 
-- **Public surface** (`bitslack.go`, `adapter.go`, `handler.go`) — everything a consumer needs to import and wire up. Keep this minimal and stable.
+- **Public surface** (`bbthread.go`, `adapter.go`, `handler.go`) — everything a consumer needs to import and wire up. Keep this minimal and stable.
 - **`internal/`** — all implementation details. Nothing in `internal/` is importable by consumers. Each sub-package has a single clear responsibility.
 - **`examples/`** — the only place that may use concrete third-party adapter implementations. The core library never depends on them.
 - **`testdata/`** — Go test convention; files here are accessible via `os.Open("testdata/...")` in tests without any path manipulation.
@@ -263,7 +263,7 @@ Uses `chat.postMessage` with the `thread_ts` field to post replies into an exist
 The caller provides tokens at construction time — the library has no opinion on how they are stored or retrieved:
 
 ```go
-client := bitslack.New(bitslack.Config{
+client := bbthread.New(bbthread.Config{
     SlackToken:       "xoxb-...",
     BitbucketUsername: "user@example.com",
     BitbucketToken:   "atlassian-api-token",
@@ -287,11 +287,11 @@ All tests run offline with zero external dependencies:
 Consumers declare which event families to handle via `Config.EnabledEvents`. Defaults to `[EventFamilyPullRequest]` if unset. Events from disabled families are soft-dropped (Warn log, nil return).
 
 ```go
-client := bitslack.New(bitslack.Config{
+client := bbthread.New(bbthread.Config{
     // ...
-    EnabledEvents: []bitslack.EventFamily{
-        bitslack.EventFamilyPullRequest,
-        bitslack.EventFamilyCommitStatus,
+    EnabledEvents: []bbthread.EventFamily{
+        bbthread.EventFamilyPullRequest,
+        bbthread.EventFamilyCommitStatus,
     },
 })
 ```

@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hasanMshawrab/bitslack/internal/event"
-	"github.com/hasanMshawrab/bitslack/internal/slack"
+	"github.com/hasanMshawrab/bbthread/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/slack"
 )
 
 // UserResolver maps a Bitbucket account ID to a Slack user ID.

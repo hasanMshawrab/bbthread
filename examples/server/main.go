@@ -1,5 +1,5 @@
 // Command server is a reference implementation showing how to wire up
-// the bitslack library with simple in-memory adapters.
+// the bbthread library with simple in-memory adapters.
 //
 // It exposes a single endpoint:
 //
@@ -26,7 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hasanMshawrab/bitslack"
+	"github.com/hasanMshawrab/bbthread"
 )
 
 const readHeaderTimeout = 10 * time.Second
@@ -55,7 +55,7 @@ func main() {
 	channelMap := parseMap(os.Getenv("BITSLACK_CHANNEL_MAP"))
 	userMap := parseMap(os.Getenv("BITSLACK_USER_MAP"))
 
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        slackToken,
 		BitbucketUsername: bbUsername,
 		BitbucketToken:    bbToken,
@@ -64,7 +64,7 @@ func main() {
 		Logger:            &slogLogger{l: logger},
 	})
 	if err != nil {
-		logger.Error("failed to create bitslack client", "error", err)
+		logger.Error("failed to create bbthread client", "error", err)
 		os.Exit(1)
 	}
 
@@ -154,7 +154,7 @@ func (c *memConfigStore) GetSlackUserID(username string) (string, bool) {
 	return id, ok
 }
 
-// slogLogger wraps [slog.Logger] to satisfy bitslack.Logger.
+// slogLogger wraps [slog.Logger] to satisfy bbthread.Logger.
 type slogLogger struct {
 	l *slog.Logger
 }
@@ -165,7 +165,7 @@ func (sl *slogLogger) Error(msg string) { sl.l.Error(msg) }
 
 // Compile-time interface checks.
 var (
-	_ bitslack.ThreadStore = (*memThreadStore)(nil)
-	_ bitslack.ConfigStore = (*memConfigStore)(nil)
-	_ bitslack.Logger      = (*slogLogger)(nil)
+	_ bbthread.ThreadStore = (*memThreadStore)(nil)
+	_ bbthread.ConfigStore = (*memConfigStore)(nil)
+	_ bbthread.Logger      = (*slogLogger)(nil)
 )

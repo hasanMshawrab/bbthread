@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/hasanMshawrab/bitslack/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/event"
 )
 
 // Wire types for Bitbucket API JSON responses.

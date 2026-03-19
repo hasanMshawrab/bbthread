@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hasanMshawrab/bitslack/internal/event"
-	"github.com/hasanMshawrab/bitslack/internal/format/markdown"
+	"github.com/hasanMshawrab/bbthread/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/format/markdown"
 )
 
 const (

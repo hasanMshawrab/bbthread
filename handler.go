@@ -1,4 +1,4 @@
-package bitslack
+package bbthread
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hasanMshawrab/bitslack/internal/bitbucket"
-	"github.com/hasanMshawrab/bitslack/internal/event"
-	"github.com/hasanMshawrab/bitslack/internal/format"
+	"github.com/hasanMshawrab/bbthread/internal/bitbucket"
+	"github.com/hasanMshawrab/bbthread/internal/event"
+	"github.com/hasanMshawrab/bbthread/internal/format"
 )
 
 // eventFamily returns the EventFamily for a given event key, or "" if unknown.
@@ -34,7 +34,7 @@ func eventFamily(eventKey string) EventFamily {
 func (c *Client) Handler(ctx context.Context, eventKey string, payload []byte) error {
 	if family := eventFamily(eventKey); family != "" {
 		if _, ok := c.enabledFamilies[family]; !ok {
-			c.logger.Warn(fmt.Sprintf("bitslack: event family %q is not enabled, dropping %q", family, eventKey))
+			c.logger.Warn(fmt.Sprintf("bbthread: event family %q is not enabled, dropping %q", family, eventKey))
 			return nil
 		}
 	}
@@ -44,10 +44,10 @@ func (c *Client) Handler(ctx context.Context, eventKey string, payload []byte) e
 		if strings.HasPrefix(eventKey, "pullrequest:") ||
 			strings.HasPrefix(eventKey, "repo:commit_status_") ||
 			strings.HasPrefix(eventKey, "pipeline:") {
-			return fmt.Errorf("bitslack: parse %s: %w", eventKey, err)
+			return fmt.Errorf("bbthread: parse %s: %w", eventKey, err)
 		}
 		// Unknown event key — log and drop
-		c.logger.Warn(fmt.Sprintf("bitslack: unknown event key %q", eventKey))
+		c.logger.Warn(fmt.Sprintf("bbthread: unknown event key %q", eventKey))
 		return nil
 	}
 
@@ -74,7 +74,7 @@ func (c *Client) handlePullRequestEvent(ctx context.Context, ev *event.Event) er
 	// Look up the Slack channel for this repository.
 	channel, ok := c.configStore.GetChannel(repoFullName)
 	if !ok {
-		c.logger.Warn(fmt.Sprintf("bitslack: no channel mapping for repo %q", repoFullName))
+		c.logger.Warn(fmt.Sprintf("bbthread: no channel mapping for repo %q", repoFullName))
 		return nil
 	}
 
@@ -83,7 +83,7 @@ func (c *Client) handlePullRequestEvent(ctx context.Context, ev *event.Event) er
 	// Look up existing thread.
 	ts, found, err := c.threadStore.Get(ctx, prKey)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: thread store get %q: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: thread store get %q: %v", prKey, err))
 		return nil
 	}
 
@@ -95,19 +95,19 @@ func (c *Client) handlePullRequestEvent(ctx context.Context, ev *event.Event) er
 		var pr *event.PullRequest
 		pr, err = c.bbClient.GetPullRequest(ctx, workspace, repoSlug, prID)
 		if err != nil {
-			c.logger.Error(fmt.Sprintf("bitslack: fetch PR %s#%d: %v", repoFullName, prID, err))
+			c.logger.Error(fmt.Sprintf("bbthread: fetch PR %s#%d: %v", repoFullName, prID, err))
 			return nil
 		}
 
 		text, blocks := format.OpeningMessage(pr, resolve)
 		ts, err = c.slackClient.PostMessage(ctx, channel, "", text, blocks)
 		if err != nil {
-			c.logger.Error(fmt.Sprintf("bitslack: post opening message for %s: %v", prKey, err))
+			c.logger.Error(fmt.Sprintf("bbthread: post opening message for %s: %v", prKey, err))
 			return nil
 		}
 
 		if storeErr := c.threadStore.Store(ctx, prKey, ts); storeErr != nil {
-			c.logger.Warn(fmt.Sprintf("bitslack: store thread ts for %s: %v", prKey, storeErr))
+			c.logger.Warn(fmt.Sprintf("bbthread: store thread ts for %s: %v", prKey, storeErr))
 		}
 		wasBackfilled = true
 	}
@@ -118,7 +118,7 @@ func (c *Client) handlePullRequestEvent(ctx context.Context, ev *event.Event) er
 			text, blocks := format.OpeningMessage(&pre.PullRequest, resolve)
 			err = c.slackClient.UpdateMessage(ctx, channel, ts, text, blocks)
 			if err != nil {
-				c.logger.Error(fmt.Sprintf("bitslack: update opening message for %s: %v", prKey, err))
+				c.logger.Error(fmt.Sprintf("bbthread: update opening message for %s: %v", prKey, err))
 			}
 		}
 		return nil
@@ -132,13 +132,13 @@ func (c *Client) handlePullRequestEvent(ctx context.Context, ev *event.Event) er
 	// All other events: post a thread reply.
 	replyText, err := format.Reply(ev, resolve, c.formatOpts)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: format reply for %s: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: format reply for %s: %v", prKey, err))
 		return nil
 	}
 
 	_, err = c.slackClient.PostMessage(ctx, channel, ts, replyText, nil)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: post reply for %s: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: post reply for %s: %v", prKey, err))
 		return nil
 	}
 
@@ -162,13 +162,13 @@ func (c *Client) refreshOpeningMessage(
 	fullPR, fetchErr := c.bbClient.GetPullRequest(ctx, workspace, repoSlug, prID)
 	if fetchErr != nil {
 		c.logger.Error(
-			fmt.Sprintf("bitslack: fetch PR for approval update %s#%d: %v", repoFullName, prID, fetchErr),
+			fmt.Sprintf("bbthread: fetch PR for approval update %s#%d: %v", repoFullName, prID, fetchErr),
 		)
 		return
 	}
 	text, blocks := format.OpeningMessage(fullPR, resolve)
 	if updateErr := c.slackClient.UpdateMessage(ctx, channel, ts, text, blocks); updateErr != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: update opening message on approval for %s: %v", prKey, updateErr))
+		c.logger.Error(fmt.Sprintf("bbthread: update opening message on approval for %s: %v", prKey, updateErr))
 	}
 }
 
@@ -185,11 +185,11 @@ func (c *Client) handleCommitStatusEvent(ctx context.Context, ev *event.Event) e
 	// Resolve commit hash to PRs.
 	prs, err := c.bbClient.GetPullRequestsForCommit(ctx, workspace, repoSlug, commitHash)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: resolve commit %s to PRs: %v", commitHash, err))
+		c.logger.Error(fmt.Sprintf("bbthread: resolve commit %s to PRs: %v", commitHash, err))
 		return nil
 	}
 	if len(prs) == 0 {
-		c.logger.Warn(fmt.Sprintf("bitslack: no PRs found for commit %s", commitHash))
+		c.logger.Warn(fmt.Sprintf("bbthread: no PRs found for commit %s", commitHash))
 		return nil
 	}
 
@@ -198,14 +198,14 @@ func (c *Client) handleCommitStatusEvent(ctx context.Context, ev *event.Event) e
 
 	channel, ok := c.configStore.GetChannel(repoFullName)
 	if !ok {
-		c.logger.Warn(fmt.Sprintf("bitslack: no channel mapping for repo %q", repoFullName))
+		c.logger.Warn(fmt.Sprintf("bbthread: no channel mapping for repo %q", repoFullName))
 		return nil
 	}
 
 	// Look up existing thread.
 	ts, found, err := c.threadStore.Get(ctx, prKey)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: thread store get %q: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: thread store get %q: %v", prKey, err))
 		return nil
 	}
 
@@ -216,25 +216,25 @@ func (c *Client) handleCommitStatusEvent(ctx context.Context, ev *event.Event) e
 		text, blocks := format.OpeningMessage(pr, resolve)
 		ts, err = c.slackClient.PostMessage(ctx, channel, "", text, blocks)
 		if err != nil {
-			c.logger.Error(fmt.Sprintf("bitslack: post opening message for %s: %v", prKey, err))
+			c.logger.Error(fmt.Sprintf("bbthread: post opening message for %s: %v", prKey, err))
 			return nil
 		}
 
 		if storeErr := c.threadStore.Store(ctx, prKey, ts); storeErr != nil {
-			c.logger.Warn(fmt.Sprintf("bitslack: store thread ts for %s: %v", prKey, storeErr))
+			c.logger.Warn(fmt.Sprintf("bbthread: store thread ts for %s: %v", prKey, storeErr))
 		}
 	}
 
 	// Post the build status as a thread reply.
 	replyText, err := format.Reply(ev, resolve, c.formatOpts)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: format reply for %s: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: format reply for %s: %v", prKey, err))
 		return nil
 	}
 
 	_, err = c.slackClient.PostMessage(ctx, channel, ts, replyText, nil)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: post reply for %s: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: post reply for %s: %v", prKey, err))
 		return nil
 	}
 
@@ -253,7 +253,7 @@ func (c *Client) handlePipelineEvent(ctx context.Context, ev *event.Event) error
 	if run.Repository.FullName == "" && run.RepoUUID != "" {
 		repo, err := c.bbClient.GetRepository(ctx, run.AccountUUID, run.RepoUUID)
 		if err != nil {
-			c.logger.Error(fmt.Sprintf("bitslack: resolve repo UUID %q: %v", run.RepoUUID, err))
+			c.logger.Error(fmt.Sprintf("bbthread: resolve repo UUID %q: %v", run.RepoUUID, err))
 			return nil
 		}
 		ev.Pipeline.PipelineRun.Repository = *repo
@@ -294,7 +294,7 @@ func (c *Client) processPipelineRun(ev *event.Event) {
 	// Fetch per-step details from the Bitbucket API.
 	steps, err := c.bbClient.GetPipelineSteps(ctx, workspace, repoSlug, run.PipelineUUID)
 	if err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: get pipeline steps for %s pipeline %s: %v",
+		c.logger.Error(fmt.Sprintf("bbthread: get pipeline steps for %s pipeline %s: %v",
 			repoFullName, run.UUID, err))
 		// Continue with no step data — header-only message will be posted.
 	} else {
@@ -315,13 +315,13 @@ func (c *Client) processPipelineRun(ev *event.Event) {
 
 	// Apply manual-stop suppression before posting.
 	if c.skipManuallyStoppedPipelines && run.Trigger == "MANUAL" && allStepsStopped(steps) {
-		c.logger.Info(fmt.Sprintf("bitslack: suppressing manually stopped pipeline %s", run.UUID))
+		c.logger.Info(fmt.Sprintf("bbthread: suppressing manually stopped pipeline %s", run.UUID))
 		return
 	}
 
 	channel, ok := c.configStore.GetChannel(repoFullName)
 	if !ok {
-		c.logger.Warn(fmt.Sprintf("bitslack: no channel mapping for repo %q", repoFullName))
+		c.logger.Warn(fmt.Sprintf("bbthread: no channel mapping for repo %q", repoFullName))
 		return
 	}
 
@@ -332,7 +332,7 @@ func (c *Client) processPipelineRun(ev *event.Event) {
 	linkedOpts.PipelineLinkedToPR = true
 	linkedText, fmtErr := format.Reply(ev, resolve, linkedOpts)
 	if fmtErr != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: format pipeline reply for %s: %v", repoFullName, fmtErr))
+		c.logger.Error(fmt.Sprintf("bbthread: format pipeline reply for %s: %v", repoFullName, fmtErr))
 		return
 	}
 
@@ -343,7 +343,7 @@ func (c *Client) processPipelineRun(ev *event.Event) {
 	// No linked PR (no open PR for branch, or TAG target): post standalone with full context.
 	standaloneText, _ := format.Reply(ev, resolve, c.formatOpts)
 	if _, postErr := c.slackClient.PostMessage(ctx, channel, "", standaloneText, nil); postErr != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: post standalone pipeline message for %s: %v", repoFullName, postErr))
+		c.logger.Error(fmt.Sprintf("bbthread: post standalone pipeline message for %s: %v", repoFullName, postErr))
 	}
 }
 
@@ -385,7 +385,7 @@ func (c *Client) postPipelineToLinkedPR(
 
 	pr, err := c.bbClient.GetOpenPRForBranch(ctx, workspace, repoSlug, run.RefName)
 	if err != nil && !errors.Is(err, bitbucket.ErrNotFound) {
-		c.logger.Error(fmt.Sprintf("bitslack: find PR for branch %q: %v", run.RefName, err))
+		c.logger.Error(fmt.Sprintf("bbthread: find PR for branch %q: %v", run.RefName, err))
 		return false
 	}
 	if pr == nil {
@@ -395,7 +395,7 @@ func (c *Client) postPipelineToLinkedPR(
 	prKey := buildPRKey(repoFullName, pr.ID)
 	ts, found, storeErr := c.threadStore.Get(ctx, prKey)
 	if storeErr != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: thread store get %q: %v", prKey, storeErr))
+		c.logger.Error(fmt.Sprintf("bbthread: thread store get %q: %v", prKey, storeErr))
 		return false
 	}
 
@@ -404,23 +404,23 @@ func (c *Client) postPipelineToLinkedPR(
 		// Fetch the full PR details so the opening message includes reviewers.
 		fullPR, fetchErr := c.bbClient.GetPullRequest(ctx, workspace, repoSlug, pr.ID)
 		if fetchErr != nil {
-			c.logger.Error(fmt.Sprintf("bitslack: fetch PR %s#%d: %v", repoFullName, pr.ID, fetchErr))
+			c.logger.Error(fmt.Sprintf("bbthread: fetch PR %s#%d: %v", repoFullName, pr.ID, fetchErr))
 			return false
 		}
 
 		text, blocks := format.OpeningMessage(fullPR, userResolver(c.configStore))
 		ts, err = c.slackClient.PostMessage(ctx, channel, "", text, blocks)
 		if err != nil {
-			c.logger.Error(fmt.Sprintf("bitslack: post opening message for %s: %v", prKey, err))
+			c.logger.Error(fmt.Sprintf("bbthread: post opening message for %s: %v", prKey, err))
 			return false
 		}
 		if saveErr := c.threadStore.Store(ctx, prKey, ts); saveErr != nil {
-			c.logger.Warn(fmt.Sprintf("bitslack: store thread ts for %s: %v", prKey, saveErr))
+			c.logger.Warn(fmt.Sprintf("bbthread: store thread ts for %s: %v", prKey, saveErr))
 		}
 	}
 
 	if _, err = c.slackClient.PostMessage(ctx, channel, ts, replyText, nil); err != nil {
-		c.logger.Error(fmt.Sprintf("bitslack: post pipeline reply for %s: %v", prKey, err))
+		c.logger.Error(fmt.Sprintf("bbthread: post pipeline reply for %s: %v", prKey, err))
 	}
 	return true
 }

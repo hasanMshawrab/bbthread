@@ -1,4 +1,4 @@
-package bitslack_test
+package bbthread_test
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hasanMshawrab/bitslack"
-	"github.com/hasanMshawrab/bitslack/internal/testutil"
+	"github.com/hasanMshawrab/bbthread"
+	"github.com/hasanMshawrab/bbthread/internal/testutil"
 )
 
 // ---------------------------------------------------------------------------
@@ -35,7 +35,7 @@ type testHarness struct {
 	ThreadStore *testutil.MockThreadStore
 	ConfigStore *testutil.MockConfigStore
 	Logger      *testutil.MockLogger
-	Client      *bitslack.Client
+	Client      *bbthread.Client
 
 	mu         sync.Mutex
 	slackCalls []slackCall
@@ -91,7 +91,7 @@ func newHarness(t *testing.T) *testHarness {
 		h.BBServer.Close()
 	})
 
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -102,7 +102,7 @@ func newHarness(t *testing.T) *testHarness {
 		Logger:            h.Logger,
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 	return h
@@ -612,7 +612,7 @@ func TestHandler_PullRequestCommentCreated(t *testing.T) {
 
 func TestHandler_CommitStatus_ExistingThread(t *testing.T) {
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -621,10 +621,10 @@ func TestHandler_CommitStatus_ExistingThread(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPullRequest, bitslack.EventFamilyCommitStatus},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPullRequest, bbthread.EventFamilyCommitStatus},
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 
@@ -652,7 +652,7 @@ func TestHandler_CommitStatus_ExistingThread(t *testing.T) {
 
 func TestHandler_CommitStatus_Backfill(t *testing.T) {
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -661,10 +661,10 @@ func TestHandler_CommitStatus_Backfill(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPullRequest, bitslack.EventFamilyCommitStatus},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPullRequest, bbthread.EventFamilyCommitStatus},
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 
@@ -713,7 +713,7 @@ func TestHandler_CommitStatus_Backfill(t *testing.T) {
 
 func TestHandler_CommitStatusFailed(t *testing.T) {
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -722,10 +722,10 @@ func TestHandler_CommitStatusFailed(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPullRequest, bitslack.EventFamilyCommitStatus},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPullRequest, bbthread.EventFamilyCommitStatus},
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 
@@ -922,7 +922,7 @@ func TestHandler_BitbucketAPIFails(t *testing.T) {
 	t.Cleanup(func() { h.BBServer.Close() })
 
 	// Re-create client with new BB URL
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -933,7 +933,7 @@ func TestHandler_BitbucketAPIFails(t *testing.T) {
 		Logger:            h.Logger,
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 
@@ -961,7 +961,7 @@ func TestHandler_BitbucketAPIFails(t *testing.T) {
 func newPipelineHarness(t *testing.T) *testHarness {
 	t.Helper()
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -970,11 +970,11 @@ func newPipelineHarness(t *testing.T) *testHarness {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPipeline},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPipeline},
 		PipelineDebounce:  1 * time.Millisecond,
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 	return h
@@ -1213,7 +1213,7 @@ func TestHandler_Pipeline_DebounceDeduplicate(t *testing.T) {
 func TestHandler_Pipeline_ManualStopSuppressed(t *testing.T) {
 	// SkipManuallyStoppedPipelines=true and all steps STOPPED + trigger MANUAL → no message.
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -1222,14 +1222,14 @@ func TestHandler_Pipeline_ManualStopSuppressed(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPipeline},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPipeline},
 		PipelineDebounce:  1 * time.Millisecond,
-		FormatOptions: bitslack.FormatOptions{
+		FormatOptions: bbthread.FormatOptions{
 			SkipManuallyStoppedPipelines: true,
 		},
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 	// Override steps response to return all-stopped.
@@ -1254,7 +1254,7 @@ func TestHandler_Pipeline_ManualStopSuppressed(t *testing.T) {
 		http.NotFound(w, r)
 	}))
 	// Re-create client with updated BB URL.
-	client2, err2 := bitslack.New(bitslack.Config{
+	client2, err2 := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -1263,14 +1263,14 @@ func TestHandler_Pipeline_ManualStopSuppressed(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPipeline},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPipeline},
 		PipelineDebounce:  1 * time.Millisecond,
-		FormatOptions: bitslack.FormatOptions{
+		FormatOptions: bbthread.FormatOptions{
 			SkipManuallyStoppedPipelines: true,
 		},
 	})
 	if err2 != nil {
-		t.Fatalf("bitslack.New: %v", err2)
+		t.Fatalf("bbthread.New: %v", err2)
 	}
 	h.Client = client2
 	_ = client // silence unused warning
@@ -1353,7 +1353,7 @@ func TestHandler_EnabledEvents_DefaultDropsCommitStatus(t *testing.T) {
 
 func TestHandler_EnabledEvents_CommitStatusExplicitlyEnabled(t *testing.T) {
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -1362,10 +1362,10 @@ func TestHandler_EnabledEvents_CommitStatusExplicitlyEnabled(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyPullRequest, bitslack.EventFamilyCommitStatus},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyPullRequest, bbthread.EventFamilyCommitStatus},
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 
@@ -1385,7 +1385,7 @@ func TestHandler_EnabledEvents_CommitStatusExplicitlyEnabled(t *testing.T) {
 
 func TestHandler_EnabledEvents_PRFamilyDisabled(t *testing.T) {
 	h := newHarness(t)
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -1394,10 +1394,10 @@ func TestHandler_EnabledEvents_PRFamilyDisabled(t *testing.T) {
 		ThreadStore:       h.ThreadStore,
 		ConfigStore:       h.ConfigStore,
 		Logger:            h.Logger,
-		EnabledEvents:     []bitslack.EventFamily{bitslack.EventFamilyCommitStatus},
+		EnabledEvents:     []bbthread.EventFamily{bbthread.EventFamilyCommitStatus},
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 	h.Client = client
 
@@ -1440,7 +1440,7 @@ func TestHandler_NilLogger(t *testing.T) {
 	defer bbSrv.Close()
 
 	// Logger is nil — should use noopLogger and not panic
-	client, err := bitslack.New(bitslack.Config{
+	client, err := bbthread.New(bbthread.Config{
 		SlackToken:        "xoxb-test",
 		BitbucketUsername: "bb-user",
 		BitbucketToken:    "bb-test",
@@ -1451,7 +1451,7 @@ func TestHandler_NilLogger(t *testing.T) {
 		Logger:            nil,
 	})
 	if err != nil {
-		t.Fatalf("bitslack.New: %v", err)
+		t.Fatalf("bbthread.New: %v", err)
 	}
 
 	// Should not panic on any code path
