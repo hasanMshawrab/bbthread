@@ -1048,8 +1048,8 @@ func TestHandler_Pipeline_LinkedToPRExistingThread(t *testing.T) {
 		t.Errorf("expected thread_ts=9999.0000, got %v", calls[0].Body["thread_ts"])
 	}
 	text, _ := calls[0].Body["text"].(string)
-	if !strings.Contains(text, "✅") {
-		t.Errorf("expected reply to contain ✅, got %q", text)
+	if !strings.Contains(text, "⚙️") {
+		t.Errorf("expected reply to contain pipeline emoji ⚙️, got %q", text)
 	}
 	// chat.update refreshes the opening message
 	if calls[1].Path != "/chat.update" {

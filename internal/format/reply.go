@@ -182,11 +182,49 @@ func commitStatusEmoji(state string) string {
 	}
 }
 
+// effectiveResult derives the overall pipeline result from step data when available.
+// Bitbucket OTel delivers "COMPLETE" for all terminal pipeline runs regardless of step
+// outcomes, so step data is required to distinguish passing from failing runs.
+// Priority: FAILED > ERROR > STOPPED (all steps) > fall back to otelResult.
+func effectiveResult(otelResult string, steps []event.PipelineStep) string {
+	if len(steps) == 0 {
+		return otelResult
+	}
+	hasFailed := false
+	hasError := false
+	allStoppedOrNotRun := true
+	for _, s := range steps {
+		switch s.Result {
+		case stateFailed:
+			hasFailed = true
+			allStoppedOrNotRun = false
+		case stateError:
+			hasError = true
+			allStoppedOrNotRun = false
+		case stateStopped, "NOT_RUN":
+			// counts as stopped / not run
+		default: // SUCCESSFUL and anything else
+			allStoppedOrNotRun = false
+		}
+	}
+	switch {
+	case hasFailed:
+		return stateFailed
+	case hasError:
+		return stateError
+	case allStoppedOrNotRun:
+		return stateStopped
+	default:
+		return otelResult
+	}
+}
+
 func formatPipelineRun(ev *event.PipelineRunEvent, resolve UserResolver, linked bool) string {
 	run := ev.PipelineRun
 
-	overallEmoji := pipelineResultEmoji(run.Result)
-	overallText := pipelineResultText(run.Result)
+	result := effectiveResult(run.Result, ev.Steps)
+	overallEmoji := pipelineResultEmoji(result)
+	overallText := pipelineResultText(result)
 	resultPart := overallEmoji
 	if overallText != "" {
 		resultPart = overallEmoji + " " + overallText

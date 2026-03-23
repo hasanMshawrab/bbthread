@@ -292,7 +292,7 @@ func TestReply_PipelineStopped(t *testing.T) {
 }
 
 func TestReply_PipelineComplete(t *testing.T) {
-	// OTel result "COMPLETE" maps to ✅ Passed.
+	// OTel result "COMPLETE" with no steps falls back to ✅ Passed.
 	ev := &event.Event{
 		Key: event.KeyPipelineSpanCreated,
 		Pipeline: &event.PipelineRunEvent{
@@ -309,6 +309,130 @@ func TestReply_PipelineComplete(t *testing.T) {
 	}
 	assertContains(t, text, "✅")
 	assertContains(t, text, "Passed")
+}
+
+func TestReply_PipelineCompleteWithFailedStep(t *testing.T) {
+	// OTel delivers COMPLETE even when steps failed; the step data overrides to ❌ Failed.
+	ev := &event.Event{
+		Key: event.KeyPipelineSpanCreated,
+		Pipeline: &event.PipelineRunEvent{
+			PipelineRun: event.PipelineRun{
+				Result:  "COMPLETE",
+				RefName: "main",
+				URL:     "https://example.com/pipeline",
+			},
+			Steps: []event.PipelineStep{
+				{Name: "Build", Result: "SUCCESSFUL"},
+				{Name: "Test", Result: "FAILED", URL: "https://example.com/step/2"},
+				{Name: "Deploy", Result: "NOT_RUN"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "❌")
+	assertContains(t, text, "Failed")
+	assertNotContains(t, text, "✅ Passed")
+}
+
+func TestReply_PipelineCompleteWithErrorStep(t *testing.T) {
+	// OTel delivers COMPLETE; a step with ERROR overrides to 🔴 Error.
+	ev := &event.Event{
+		Key: event.KeyPipelineSpanCreated,
+		Pipeline: &event.PipelineRunEvent{
+			PipelineRun: event.PipelineRun{
+				Result:  "COMPLETE",
+				RefName: "main",
+				URL:     "https://example.com/pipeline",
+			},
+			Steps: []event.PipelineStep{
+				{Name: "Build", Result: "ERROR", URL: "https://example.com/step/1"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "🔴")
+	assertContains(t, text, "Error")
+	assertNotContains(t, text, "✅ Passed")
+}
+
+func TestReply_PipelineCompleteAllStoppedSteps(t *testing.T) {
+	// OTel delivers COMPLETE; all steps STOPPED overrides to ⏹ Stopped.
+	ev := &event.Event{
+		Key: event.KeyPipelineSpanCreated,
+		Pipeline: &event.PipelineRunEvent{
+			PipelineRun: event.PipelineRun{
+				Result:  "COMPLETE",
+				RefName: "main",
+				URL:     "https://example.com/pipeline",
+			},
+			Steps: []event.PipelineStep{
+				{Name: "Build", Result: "STOPPED"},
+				{Name: "Test", Result: "NOT_RUN"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "⏹")
+	assertContains(t, text, "Stopped")
+	assertNotContains(t, text, "✅ Passed")
+}
+
+func TestReply_PipelineCompleteAllSuccessfulSteps(t *testing.T) {
+	// OTel delivers COMPLETE; all steps SUCCESSFUL → ✅ Passed.
+	ev := &event.Event{
+		Key: event.KeyPipelineSpanCreated,
+		Pipeline: &event.PipelineRunEvent{
+			PipelineRun: event.PipelineRun{
+				Result:  "COMPLETE",
+				RefName: "main",
+				URL:     "https://example.com/pipeline",
+			},
+			Steps: []event.PipelineStep{
+				{Name: "Build", Result: "SUCCESSFUL"},
+				{Name: "Test", Result: "SUCCESSFUL"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "✅")
+	assertContains(t, text, "Passed")
+}
+
+func TestReply_PipelineFailedPriorityOverError(t *testing.T) {
+	// When both FAILED and ERROR steps exist, FAILED takes priority.
+	ev := &event.Event{
+		Key: event.KeyPipelineSpanCreated,
+		Pipeline: &event.PipelineRunEvent{
+			PipelineRun: event.PipelineRun{
+				Result:  "COMPLETE",
+				RefName: "main",
+				URL:     "https://example.com/pipeline",
+			},
+			Steps: []event.PipelineStep{
+				{Name: "Build", Result: "ERROR", URL: "https://example.com/step/1"},
+				{Name: "Test", Result: "FAILED", URL: "https://example.com/step/2"},
+			},
+		},
+	}
+	text, err := format.Reply(ev, defaultResolver(), format.Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, text, "❌")
+	assertContains(t, text, "Failed")
+	assertNotContains(t, text, "🔴")
 }
 
 func TestReply_PipelineLinkedToPR_OmitsRepoAndBranch(t *testing.T) {
