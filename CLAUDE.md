@@ -207,7 +207,7 @@ GET /repositories/{accountUUID}/{repoUUID}
 ```
 The `account.uuid` is used as the workspace identifier (Bitbucket accepts UUIDs in place of slugs). The resolved `full_name` is then used for all subsequent channel and thread lookups.
 
-**Result values:** OTel `pipeline.state.result.name` uses different values than the REST API. The mapping is: `COMPLETE` → ✅, `FAILED` → ❌, `ERROR` → 🔴, `STOPPED` → ⏹. These differ from `repo:commit_status_*` which uses `SUCCESSFUL`/`FAILED`/`INPROGRESS`.
+**Result values:** Bitbucket OTel spans always deliver `pipeline.state.result.name = "COMPLETE"` for all terminal pipeline runs regardless of step outcomes — `FAILED`, `ERROR`, and `STOPPED` are also possible but not observed for step-level failures. The displayed result is therefore derived from the fetched step data (priority: `FAILED` > `ERROR` > all-`STOPPED`/`NOT_RUN` → `STOPPED` > fallback to OTel value). When step data is unavailable the OTel value is used directly. The REST API (used by the `*Builds:*` field) uses `SUCCESSFUL`/`FAILED`/`INPROGRESS`, which differ from OTel values. The `repo:commit_status_*` family also uses REST API values.
 
 **Run number:** The `pipeline_run.run_number` OTel attribute is delivered as a `stringValue` (not `intValue`) and is parsed via `strconv.Atoi`.
 
@@ -238,7 +238,7 @@ Both formats are followed by indented per-step lines when step data is available
 ```
 Trigger labels: `PUSH` → `automatic trigger`, `MANUAL` → `manual trigger`, `SCHEDULE` → `scheduled trigger`, anything else → lowercased + ` trigger`.
 
-Result text: `COMPLETE` → `Passed`, `FAILED` → `Failed`, `ERROR` → `Error`, `STOPPED` → `Stopped`.
+Result text: `COMPLETE`/`SUCCESSFUL` → `Passed`, `FAILED` → `Failed`, `ERROR` → `Error`, `STOPPED` → `Stopped`. The effective result shown is derived from step data when available (see **Result values** above) — not read directly from the OTel span.
 
 **Step breakdown:** After the debounce delay, the handler calls `GET /repositories/{workspace}/{repo}/pipelines/{pipeline.uuid}/steps/` to fetch step details. Note: the steps API requires `pipeline.uuid` (the build UUID, from OTel attribute `pipeline.uuid`), not `pipeline_run.uuid`. Each step is rendered on its own line below the header. Step result symbols: `✓` SUCCESSFUL, `✗` FAILED, `✗` ERROR, `–` STOPPED, `–` NOT_RUN. Failed and errored steps are hyperlinked to the Bitbucket UI; other steps show a plain name.
 
